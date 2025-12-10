@@ -10,4 +10,8 @@ export interface IUser {
   socketId?: string | null;
   createdAt: Date;
   updatedAt: Date;
+  refreshToken?: string | null;
+  generateAccessToken(): string;
+  isPasswordCorrect(password: string): Promise<boolean>;
+  generateRefreshToken(): string;
 }

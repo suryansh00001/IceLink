@@ -1,0 +1,11 @@
+{
+  "dependencies": {
+    "cloudinary": "^2.8.0",
+    "google-auth-library": "^10.5.0",
+    "multer": "^2.0.2",
+    "streamifier": "^0.1.1"
+  },
+  "devDependencies": {
+    "@types/multer": "^2.0.0"
+  }
+}
