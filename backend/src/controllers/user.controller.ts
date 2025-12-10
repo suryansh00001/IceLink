@@ -277,5 +277,50 @@ const googleLogin = async (req: Request, res: Response) => {
 };
 
 
+const refreshAccessToken = async (req: Request, res: Response) => {
+    try {
+        const incomingRefreshToken = req.cookies?.refreshToken;
 
-export { generateTokens,registerUser, loginUser, logoutUser, getCurrentUser, updateDetails , updateAvatar, changePassword, googleLogin };
+        if (!incomingRefreshToken) {
+            return res.status(401).json(new ErrorResponse(401, "Refresh token missing"));
+        }
+
+        const decoded = jwt.verify(
+            incomingRefreshToken,
+            process.env.REFRESH_TOKEN_SECRET!
+        ) as { _id: string };
+
+        const user = await User.findById(decoded._id);
+
+        if (!user) {
+            return res.status(401).json(new ErrorResponse(401, "Invalid refresh token"));
+        }
+
+        if (user.refreshToken !== incomingRefreshToken) {
+            return res.status(401).json(new ErrorResponse(401, "Refresh token expired or used"));
+        }
+
+        const { accessToken, refreshToken } = await generateTokens(user._id.toString());
+
+        const options = {
+            secure: true,
+            httpOnly: true,
+            sameSite: "lax" as const,
+            maxAge: 7 * 24 * 60 * 60 * 1000
+        };
+
+        res
+            .status(200)
+            .cookie("accessToken", accessToken, options)
+            .cookie("refreshToken", refreshToken, options)
+            .json(new ApiResponse(200, "Access token refreshed", { accessToken, refreshToken }));
+
+    } catch (error) {
+        return res.status(401).json(new ErrorResponse(401, `Invalid or expired refresh token`));
+    }
+};
+
+
+
+
+export { generateTokens,registerUser, loginUser, logoutUser, getCurrentUser, updateDetails , updateAvatar, changePassword, googleLogin, refreshAccessToken };

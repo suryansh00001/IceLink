@@ -2,6 +2,7 @@ import { Request, Response , NextFunction } from "express";
 import jwt from "jsonwebtoken";
 import ErrorResponse from "../utils/apiError";
 import User from "../models/user.model";
+
 const JWT_SECRET = process.env.JWT_SECRET ;
 
 const verifyToken = async (req: Request, res: Response, next: NextFunction) => {
