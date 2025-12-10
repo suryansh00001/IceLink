@@ -7,27 +7,27 @@ import ErrorResponse from "../utils/apiError";
 import { userInfo } from "os";
 import uploadToCloudinary  from "../utils/uploadToCloudinary";
 
-const JWT_SECRET = process.env.JWT_SECRET ;
+const JWT_SECRET = process.env.JWT_SECRET;
+const REFRESH_TOKEN_SECRET = process.env.REFRESH_TOKEN_SECRET;
 
 const generateTokens = async (userId: string) => {
-    try {
-        const user = await User.findById(userId);
-        if(!user) 
-            {
-                throw new Error("User not found");
-            }
-                
-        const accessToken=   user.generateAccessToken();
-        const refreshToken=  user.generateRefreshToken();
-        return { accessToken, refreshToken };
-    } catch (error) {
-        throw new ErrorResponse(500 , "Error generating tokens");
-    }
+  const user = await User.findById(userId);
+  if (!user) throw new Error("User not found");
 
+  const accessToken = user.generateAccessToken();
+  const refreshToken = user.generateRefreshToken();
+
+  user.refreshToken = refreshToken;
+  await user.save({ validateBeforeSave: false });
+
+  return { accessToken, refreshToken };
 }
 
 const registerUser = async (req,res) => {
-    const { username, email, password } = req.body;
+    const { username, email, password } = req.body || {};
+    if (!username || !email || !password) {
+        return res.status(400).json(new ErrorResponse(400, "username, email and password are required"));
+    }
     try {
         const existingUser = await User.findOne({ email });
         if (existingUser) {
@@ -48,13 +48,18 @@ const registerUser = async (req,res) => {
             return res.status(500).json(new ErrorResponse(500, "User creation failed"));
         }
 
-        const options = { secure: true, httpOnly: true, sameSite: "Lax", maxAge: 7 * 24 * 60 * 60 * 1000 }; // 7 days
+        const cookieOptions: CookieOptions = {
+          secure: process.env.NODE_ENV === "production",
+          httpOnly: true,
+          sameSite: "lax",
+          maxAge: 7 * 24 * 60 * 60 * 1000,
+        };
 
         res
         .status(201)
-        .cookie("refreshToken", refreshToken , options )
-        .cookie("accessToken", accessToken , options )
-        .json(new ApiResponse(201, "User registered successfully", { user: createdUser , accessToken , refreshToken }));
+        .cookie("refreshToken", refreshToken, cookieOptions)
+        .cookie("accessToken", accessToken, cookieOptions)
+        .json(new ApiResponse(201, "User registered successfully", { user: createdUser, accessToken, refreshToken }));
     } catch (error) {
         res.status(500).json(new ErrorResponse(500, `Server error : ${error.message}`));
     }
@@ -62,26 +67,33 @@ const registerUser = async (req,res) => {
 
 const loginUser = async (req,res) => {
     try {
-        const { email, password } = req.body;
+        console.log("Login request body:", req.body);
+        const { email, password } = req.body || {};
         if(!email || !password) {
+            console.log("Missing email or password");
             return res.status(400).json(new ErrorResponse(400, "Email and password are required"));
         }
     
-        const user = await User.findOne({
-            email
-        });
+        const user = await User.findOne({ email });
         if(!user) {
+            console.log("User not found for email:", email);
             return res.status(404).json(new ErrorResponse(404, "User not found"));
         }
     
         const isMatch = await user.isPasswordCorrect(password);
         if(!isMatch) {
+            console.log("Invalid password for user:", email);
             return res.status(400).json(new ErrorResponse(400, "Invalid credentials"));
         }
     
         const { accessToken , refreshToken } = await generateTokens(user._id.toString());
     
-        const options = { secure: true, httpOnly: true, sameSite: "Lax", maxAge: 7 * 24 * 60 * 60 * 1000 }; // 7 days
+        const cookieOptions: CookieOptions = {
+          secure: process.env.NODE_ENV === "production",
+          httpOnly: true,
+          sameSite: "lax",
+          maxAge: 7 * 24 * 60 * 60 * 1000,
+        };
         const loggedInUser = await User.findById(user._id).select("-password -refreshToken");
     
         if (!loggedInUser) {
@@ -90,13 +102,16 @@ const loginUser = async (req,res) => {
     
         res
         .status(200)
-        .cookie("refreshToken", refreshToken , options )
-        .cookie("accessToken", accessToken , options )
-        .json(new ApiResponse(200, "User logged in successfully", { user: loggedInUser , accessToken , refreshToken }));
-    
-    } catch (error) {
+        .cookie("refreshToken", refreshToken, cookieOptions)
+        .cookie("accessToken", accessToken, cookieOptions)
+        .json(new ApiResponse(200, "User logged in successfully", { user: loggedInUser, accessToken, refreshToken }));
+    } catch (error: any) {
+        console.error("Login error:", error.stack || error);
         return res.status(500).json(new ErrorResponse(500, `Server error : ${error.message}`));
-    }};
+    }
+};
+
+
 
 const logoutUser = async (req: Request, res: Response) => {
     const user= (req as any).user;
@@ -193,13 +208,20 @@ const updateAvatar = async (req: Request, res: Response) => {
 }
 
 const changePassword = async (req: Request, res: Response) => {
-    const user= (req as any).user;
-    if (!user) {
+    const authUser = (req as any).user;
+    if (!authUser) {
         return res.status(401).json(new ErrorResponse(401, "Unauthorized"));
     }
+    
     const { currentPassword, newPassword } = req.body;
     if (!currentPassword || !newPassword) {
         return res.status(400).json(new ErrorResponse(400, "Current and new password are required"));
+    }
+
+    // Fetch user again WITH password field to verify current password
+    const user = await User.findById(authUser._id).select("+password");
+    if (!user) {
+        return res.status(404).json(new ErrorResponse(404, "User not found"));
     }
 
     const isMatch = await user.isPasswordCorrect(currentPassword);
@@ -279,18 +301,28 @@ const googleLogin = async (req: Request, res: Response) => {
 
 const refreshAccessToken = async (req: Request, res: Response) => {
     try {
-        const incomingRefreshToken = req.cookies?.refreshToken;
+        console.log("=== Refresh Token Debug ===");
+        console.log("Cookies:", req.cookies);
+        console.log("Body:", req.body);
+        
+        // Accept from cookie OR body (for testing in Postman)
+        const incomingRefreshToken = req.cookies?.refreshToken || req.body?.refreshToken;
 
         if (!incomingRefreshToken) {
+            console.log("No refresh token in cookies or body");
             return res.status(401).json(new ErrorResponse(401, "Refresh token missing"));
+        }
+
+        if (!process.env.REFRESH_TOKEN_SECRET) {
+            return res.status(500).json(new ErrorResponse(500, "Server configuration error"));
         }
 
         const decoded = jwt.verify(
             incomingRefreshToken,
-            process.env.REFRESH_TOKEN_SECRET!
-        ) as { _id: string };
+            process.env.REFRESH_TOKEN_SECRET
+        ) as { userId: string };
 
-        const user = await User.findById(decoded._id);
+        const user = await User.findById(decoded.userId);
 
         if (!user) {
             return res.status(401).json(new ErrorResponse(401, "Invalid refresh token"));

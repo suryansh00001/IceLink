@@ -48,38 +48,32 @@ userSchema.methods.generateAccessToken = function() {
   const token = jwt.sign(
     { userId: this._id, username: this.username },
     process.env.JWT_SECRET,
-    { expiresIn: "10d" }
+    { expiresIn: "15m" }
   );
   return token;
 };
 
-userSchema.methods.generateAccessToken = function() {
+userSchema.methods.generateRefreshToken = function() {
   const jwt = require("jsonwebtoken");
   const token = jwt.sign(
     { userId: this._id, username: this.username },
-    process.env.JWT_SECRET,
-    { expiresIn: "1d" }
+    process.env.REFRESH_TOKEN_SECRET,
+    { expiresIn: "7d" }
   );
   return token;
-}
+};
 
 userSchema.methods.isPasswordCorrect = async function(password: string) {
   return bcrypt.compare(password, this.password);
 };
 
-userSchema.pre("save", function (next: (err?: any) => void) {
-  const bcrypt = require("bcryptjs");
-
-  if (!this.isModified("password")) return next();
-
-  bcrypt.hash(this.password, 10, (err, hash) => {
-    if (err) return next(err);
-
-    this.password = hash;
-    next();
-  });
+userSchema.pre("save", async function () {
+  const user = this as any;
+  // only hash when password is modified or on new user
+  if (!user.isModified("password")) return;
+  const salt = await bcrypt.genSalt(10);
+  user.password = await bcrypt.hash(user.password, salt);
 });
-
 
 
 
