@@ -1,14 +1,22 @@
-import { useEffect } from "react";
-import { socket } from "./socket";
+import { Routes, Route, Navigate } from 'react-router-dom';
+import Login from './pages/auth/Login';
+import Register from './pages/auth/Register';
+import ProtectedRoute from './components/common/protectedRoute';
 
 function App() {
-  useEffect(() => {
-    socket.on("connect", () => {
-      console.log("Connected to IceLink:", socket.id);
-    });
-  }, []);
-
-  return <h1>IceLink</h1>;
+  return (
+    <div className="min-h-screen bg-gray-50">
+      <Routes>
+        <Route path="/" element={<Navigate to="/login" replace />} />
+        <Route path="/login" element={<Login />} />
+        <Route path="/register" element={<Register />} />
+        <Route element={<ProtectedRoute />}>
+          {/* Add your protected routes here */}
+          <Route path="/chats" element={<div>Chats Page</div>} />
+        </Route>
+      </Routes>
+    </div>
+  );
 }
 
 export default App;
