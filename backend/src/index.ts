@@ -12,6 +12,7 @@ connectDB();
 import userRoutes from "./routes/user.routes";
 import chatRoutes from "./routes/chat.routes";
 import messageRoutes from "./routes/message.routes";
+import callRoutes from "./routes/call.routes";
 import { initSocket } from "./socket";
 
 const app = express();
@@ -29,6 +30,8 @@ app.use(express.urlencoded({ extended: true }));
 app.use("/api/users", userRoutes);
 app.use("/api/chats", chatRoutes);
 app.use("/api/messages", messageRoutes);
+app.use("/api/calls", callRoutes);
+
 
 const server = http.createServer(app);
 

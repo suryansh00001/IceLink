@@ -1,0 +1,964 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>IceLink - WebRTC Test</title>
+    <script src="https://cdn.socket.io/4.5.4/socket.io.min.js"></script>
+    <style>
+        body { 
+            font-family: Arial, sans-serif; 
+            padding: 20px; 
+            background: #f5f5f5;
+        }
+        .container {
+            display: flex;
+            gap: 20px;
+            flex-wrap: wrap;
+        }
+        .user-panel { 
+            flex: 1;
+            min-width: 450px;
+            border: 3px solid #ccc;
+            padding: 20px;
+            border-radius: 12px;
+            background: white;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+        }
+        .user1 { border-color: #4CAF50; }
+        .user2 { border-color: #2196F3; }
+        
+        h2 { 
+            margin-top: 0; 
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+        
+        .status {
+            font-size: 14px;
+            padding: 4px 12px;
+            border-radius: 20px;
+            background: #f0f0f0;
+        }
+        .status.connected { background: #c8e6c9; color: #2e7d32; }
+        
+        button { 
+            margin: 5px; 
+            padding: 10px 16px; 
+            cursor: pointer;
+            border: none;
+            border-radius: 6px;
+            font-size: 14px;
+            font-weight: 500;
+            transition: all 0.2s;
+        }
+        button:hover:not(:disabled) {
+            transform: translateY(-1px);
+            box-shadow: 0 2px 4px rgba(0,0,0,0.2);
+        }
+        button:disabled { 
+            opacity: 0.5; 
+            cursor: not-allowed; 
+        }
+        button.primary { background: #4CAF50; color: white; }
+        button.danger { background: #f44336; color: white; }
+        button.secondary { background: #2196F3; color: white; }
+        
+        input[type="email"], input[type="password"], input[type="text"] { 
+            padding: 10px; 
+            width: calc(100% - 24px);
+            margin: 5px 0;
+            border: 1px solid #ddd;
+            border-radius: 6px;
+            font-size: 14px;
+        }
+        input[type="file"] {
+            margin: 5px 0;
+        }
+        
+        .video-container {
+            margin: 15px 0;
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 10px;
+        }
+        video {
+            width: 100%;
+            background: #000;
+            border-radius: 8px;
+            min-height: 150px;
+        }
+        
+        .call-controls {
+            margin: 15px 0;
+            padding: 15px;
+            background: #f8f8f8;
+            border-radius: 8px;
+        }
+        
+        .incoming-call {
+            background: #fff3cd;
+            padding: 15px;
+            border-radius: 8px;
+            margin: 10px 0;
+            border-left: 4px solid #ffc107;
+        }
+        
+        .log { 
+            margin-top: 15px; 
+            border: 1px solid #ddd; 
+            padding: 12px; 
+            height: 200px; 
+            overflow-y: auto;
+            background: #fafafa;
+            border-radius: 8px;
+            font-size: 13px;
+            font-family: 'Courier New', monospace;
+        }
+        .message { 
+            padding: 6px; 
+            margin: 3px 0; 
+            border-radius: 4px;
+        }
+        .sent { background: #e3f2fd; }
+        .received { background: #f1f8e9; }
+        
+        .section {
+            margin: 15px 0;
+            padding: 12px;
+            background: #fafafa;
+            border-radius: 8px;
+        }
+        .section-title {
+            font-weight: bold;
+            margin-bottom: 8px;
+            color: #555;
+        }
+    </style>
+</head>
+<body>
+    <h1>🧊 IceLink - WebRTC Video/Audio Call Test</h1>
+    
+    <div class="container">
+        <!-- User 1 Panel -->
+        <div class="user-panel user1">
+            <h2>
+                👤 User 1 
+                <span class="status" id="status1">Disconnected</span>
+            </h2>
+            
+            <div class="section">
+                <div class="section-title">Login</div>
+                <input type="email" id="email1" placeholder="Email" value="test2@example.com">
+                <input type="password" id="pass1" placeholder="Password" value="P@ssw0rd1">
+                <button class="primary" id="login1">Login & Connect</button>
+                <button class="secondary" id="createChat1" disabled>Create/Get Chat</button>
+            </div>
+            
+            <div class="section call-controls">
+                <div class="section-title">📞 Calls</div>
+                <div style="margin-bottom: 10px;">
+                    <label><input type="radio" name="callType1" value="video" checked> 📹 Video Call</label>
+                    <label style="margin-left: 15px;"><input type="radio" name="callType1" value="audio"> 🎤 Audio Only</label>
+                </div>
+                <button class="primary" id="startCall1" disabled>Start Call</button>
+                <button class="danger" id="endCall1" disabled>End Call</button>
+                <div style="margin-top: 10px;">
+                    <button class="secondary" id="toggleMute1" disabled>🎤 Mute</button>
+                    <button class="secondary" id="toggleVideo1" disabled>📹 Camera Off</button>
+                </div>
+                <div id="incomingCall1" class="incoming-call" style="display:none;">
+                    <p><strong>📞 Incoming <span id="callType1"></span> from <span id="callerName1"></span></strong></p>
+                    <button class="primary" id="answerCall1">✅ Answer</button>
+                    <button class="danger" id="rejectCall1">❌ Reject</button>
+                </div>
+            </div>
+            
+            <div class="video-container">
+                <div>
+                    <div style="font-size:12px; margin-bottom:5px;">Your Video</div>
+                    <video id="localVideo1" autoplay muted playsinline></video>
+                </div>
+                <div>
+                    <div style="font-size:12px; margin-bottom:5px;">Remote Video</div>
+                    <video id="remoteVideo1" autoplay playsinline></video>
+                </div>
+            </div>
+            
+            <div class="section">
+                <div class="section-title">💬 Chat</div>
+                <input type="text" id="msg1" placeholder="Type message..." disabled>
+                <button class="secondary" id="send1" disabled>Send</button>
+                <br>
+                <input type="file" id="file1" accept="image/*,video/*" disabled>
+                <button class="secondary" id="sendMedia1" disabled>Send Media</button>
+            </div>
+            
+            <div class="log" id="log1"></div>
+        </div>
+
+        <!-- User 2 Panel -->
+        <div class="user-panel user2">
+            <h2>
+                👤 User 2 
+                <span class="status" id="status2">Disconnected</span>
+            </h2>
+            
+            <div class="section">
+                <div class="section-title">Login</div>
+                <input type="email" id="email2" placeholder="Email" value="user2@example.com">
+                <input type="password" id="pass2" placeholder="Password" value="P@ssw0rd1">
+                <button class="primary" id="login2">Login & Connect</button>
+                <button class="secondary" id="createChat2" disabled>Join Chat</button>
+            </div>
+            
+            <div class="section call-controls">
+                <div class="section-title">📞 Calls</div>
+                <div style="margin-bottom: 10px;">
+                    <label><input type="radio" name="callType2" value="video" checked> 📹 Video Call</label>
+                    <label style="margin-left: 15px;"><input type="radio" name="callType2" value="audio"> 🎤 Audio Only</label>
+                </div>
+                <button class="primary" id="startCall2" disabled>Start Call</button>
+                <button class="danger" id="endCall2" disabled>End Call</button>
+                <div style="margin-top: 10px;">
+                    <button class="secondary" id="toggleMute2" disabled>🎤 Mute</button>
+                    <button class="secondary" id="toggleVideo2" disabled>📹 Camera Off</button>
+                </div>
+                <div id="incomingCall2" class="incoming-call" style="display:none;">
+                    <p><strong>📞 Incoming <span id="callType2"></span> from <span id="callerName2"></span></strong></p>
+                    <button class="primary" id="answerCall2">✅ Answer</button>
+                    <button class="danger" id="rejectCall2">❌ Reject</button>
+                </div>
+            </div>
+            
+            <div class="video-container">
+                <div>
+                    <div style="font-size:12px; margin-bottom:5px;">Your Video</div>
+                    <video id="localVideo2" autoplay muted playsinline></video>
+                </div>
+                <div>
+                    <div style="font-size:12px; margin-bottom:5px;">Remote Video</div>
+                    <video id="remoteVideo2" autoplay playsinline></video>
+                </div>
+            </div>
+            
+            <div class="section">
+                <div class="section-title">💬 Chat</div>
+                <input type="text" id="msg2" placeholder="Type message..." disabled>
+                <button class="secondary" id="send2" disabled>Send</button>
+                <br>
+                <input type="file" id="file2" accept="image/*,video/*" disabled>
+                <button class="secondary" id="sendMedia2" disabled>Send Media</button>
+            </div>
+            
+            <div class="log" id="log2"></div>
+        </div>
+    </div>
+
+    <script>
+        let socket1, socket2;
+        let user1Data = null, user2Data = null;
+        let chatId = null;
+        
+        // WebRTC variables
+        let peerConnection1 = null, peerConnection2 = null;
+        let localStream1 = null, localStream2 = null;
+        const iceServers = {
+            iceServers: [
+                { urls: 'stun:stun.l.google.com:19302' },
+                { urls: 'stun:stun1.l.google.com:19302' }
+            ]
+        };
+
+        const log = (logId, msg, type = '') => {
+            const logDiv = document.getElementById(logId);
+            const time = new Date().toLocaleTimeString();
+            const className = type ? `message ${type}` : '';
+            logDiv.innerHTML += `<div class="${className}">[${time}] ${msg}</div>`;
+            logDiv.scrollTop = logDiv.scrollHeight;
+        };
+
+        // ========== USER 1 FUNCTIONS ==========
+        
+        document.getElementById('login1').addEventListener('click', async () => {
+            const email = document.getElementById('email1').value;
+            const pass = document.getElementById('pass1').value;
+            
+            try {
+                log('log1', '🔐 Logging in...');
+                const res = await fetch('http://localhost:5000/api/users/login', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ email, password: pass })
+                });
+
+                const data = await res.json();
+                if (!data.data?.accessToken) {
+                    log('log1', '❌ Login failed');
+                    return;
+                }
+
+                user1Data = data.data;
+                log('log1', '✅ Logged in as: ' + user1Data.user.username);
+
+                // Connect socket
+                socket1 = io('http://localhost:5000', {
+                    extraHeaders: { Authorization: `Bearer ${user1Data.accessToken}` }
+                });
+
+                socket1.on('connect', () => {
+                    log('log1', '✅ Socket connected');
+                    document.getElementById('status1').textContent = 'Connected';
+                    document.getElementById('status1').classList.add('connected');
+                    document.getElementById('createChat1').disabled = false;
+                });
+
+                socket1.on('newMessage', (msg) => {
+                    if (msg.messageType === 'text') {
+                        log('log1', `📨 ${msg.senderId.username}: ${msg.content}`, 'received');
+                    } else {
+                        log('log1', `📨 ${msg.senderId.username} sent ${msg.messageType}: <a href="${msg.mediaUrl}" target="_blank">View</a>`, 'received');
+                    }
+                });
+
+                socket1.on('typing', (data) => {
+                    log('log1', `⌨️ User is typing...`);
+                });
+
+                // WebRTC signaling events
+                socket1.on('callUser', async (data) => {
+                    const callType = data.callType || 'video';
+                    log('log1', `📞 Incoming ${callType} call from ${data.name}`);
+                    document.getElementById('callerName1').textContent = data.name;
+                    document.getElementById('callType1').textContent = callType + ' call';
+                    document.getElementById('incomingCall1').style.display = 'block';
+                    
+                    window.incomingOffer1 = data.signal;
+                    window.incomingCallerId1 = data.from;
+                    window.incomingCallType1 = callType;
+                });
+
+                socket1.on('callAccepted', async (signal) => {
+                    log('log1', '✅ Call accepted');
+                    if (peerConnection1) {
+                        await peerConnection1.setRemoteDescription(new RTCSessionDescription(signal));
+                    }
+                });
+
+                socket1.on('iceCandidate', async (candidate) => {
+                    if (peerConnection1 && candidate) {
+                        try {
+                            await peerConnection1.addIceCandidate(new RTCIceCandidate(candidate));
+                        } catch (e) {
+                            console.error('Error adding ICE candidate:', e);
+                        }
+                    }
+                });
+
+                socket1.on('callEnded', () => {
+                    log('log1', '📵 Call ended');
+                    endCall1();
+                });
+
+                socket1.on('callRejected', () => {
+                    log('log1', '❌ Call rejected');
+                    endCall1();
+                });
+
+            } catch (error) {
+                log('log1', '❌ Error: ' + error.message);
+            }
+        });
+
+        document.getElementById('createChat1').addEventListener('click', async () => {
+            if (!user2Data) {
+                log('log1', '⚠️ User 2 must login first');
+                return;
+            }
+            
+            try {
+                log('log1', '💬 Creating chat with User 2...');
+                const res = await fetch('http://localhost:5000/api/chats', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'Authorization': `Bearer ${user1Data.accessToken}`
+                    },
+                    body: JSON.stringify({ otherUserId: user2Data.user._id })
+                });
+
+                const data = await res.json();
+                chatId = data.data.chat._id;
+                log('log1', '✅ Chat created: ' + chatId);
+                
+                socket1.emit('joinChat', chatId);
+                log('log1', '✅ Joined chat room');
+                
+                document.getElementById('msg1').disabled = false;
+                document.getElementById('send1').disabled = false;
+                document.getElementById('file1').disabled = false;
+                document.getElementById('sendMedia1').disabled = false;
+                document.getElementById('startCall1').disabled = false;
+            } catch (error) {
+                log('log1', '❌ Error: ' + error.message);
+            }
+        });
+
+        document.getElementById('send1').addEventListener('click', async () => {
+            const content = document.getElementById('msg1').value;
+            if (!content) return;
+
+            try {
+                const res = await fetch('http://localhost:5000/api/messages', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'Authorization': `Bearer ${user1Data.accessToken}`
+                    },
+                    body: JSON.stringify({ chatId, content })
+                });
+
+                const data = await res.json();
+                log('log1', `✉️ You: ${content}`, 'sent');
+                document.getElementById('msg1').value = '';
+            } catch (error) {
+                log('log1', '❌ Error: ' + error.message);
+            }
+        });
+
+        document.getElementById('sendMedia1').addEventListener('click', async () => {
+            const fileInput = document.getElementById('file1');
+            const file = fileInput.files[0];
+            if (!file) {
+                log('log1', '⚠️ Please select a file first');
+                return;
+            }
+
+            try {
+                log('log1', `📤 Uploading ${file.name}...`);
+                const formData = new FormData();
+                formData.append('file', file);
+                formData.append('chatId', chatId);
+
+                const res = await fetch('http://localhost:5000/api/messages/media', {
+                    method: 'POST',
+                    headers: { 'Authorization': `Bearer ${user1Data.accessToken}` },
+                    body: formData
+                });
+
+                const data = await res.json();
+                if (data.success) {
+                    log('log1', `✅ Media sent: ${file.name}`, 'sent');
+                    fileInput.value = '';
+                } else {
+                    log('log1', '❌ Upload failed: ' + data.message);
+                }
+            } catch (error) {
+                log('log1', '❌ Error: ' + error.message);
+            }
+        });
+
+        // WebRTC Functions for User 1
+        async function startCall1() {
+            if (!user2Data) {
+                log('log1', '⚠️ User 2 must be logged in');
+                return;
+            }
+            
+            try {
+                const callType = document.querySelector('input[name="callType1"]:checked').value;
+                const isVideo = callType === 'video';
+                
+                log('log1', `📹 Starting ${callType} call...`);
+                localStream1 = await navigator.mediaDevices.getUserMedia({ 
+                    video: isVideo, 
+                    audio: true 
+                });
+                document.getElementById('localVideo1').srcObject = localStream1;
+                
+                peerConnection1 = new RTCPeerConnection(iceServers);
+                
+                localStream1.getTracks().forEach(track => {
+                    peerConnection1.addTrack(track, localStream1);
+                });
+                
+                peerConnection1.ontrack = (event) => {
+                    document.getElementById('remoteVideo1').srcObject = event.streams[0];
+                    log('log1', '📺 Remote video stream received');
+                };
+                
+                peerConnection1.onicecandidate = (event) => {
+                    if (event.candidate) {
+                        socket1.emit('iceCandidate', {
+                            to: user2Data.user._id,
+                            candidate: event.candidate
+                        });
+                    }
+                };
+                
+                const offer = await peerConnection1.createOffer();
+                await peerConnection1.setLocalDescription(offer);
+                
+                socket1.emit('callUser', {
+                    to: user2Data.user._id,
+                    signalData: offer,
+                    from: user1Data.user._id,
+                    name: user1Data.user.username,
+                    callType: callType
+                });
+                
+                document.getElementById('startCall1').disabled = true;
+                document.getElementById('endCall1').disabled = false;
+                document.getElementById('toggleMute1').disabled = false;
+                if (isVideo) document.getElementById('toggleVideo1').disabled = false;
+                log('log1', `📞 Calling User 2 (${callType})...`);
+            } catch (error) {
+                log('log1', '❌ Error starting call: ' + error.message);
+            }
+        }
+
+        async function answerCall1() {
+            try {
+                const isVideo = window.incomingCallType1 === 'video';
+                log('log1', `📹 Answering ${window.incomingCallType1} call...`);
+                localStream1 = await navigator.mediaDevices.getUserMedia({ 
+                    video: isVideo, 
+                    audio: true 
+                });
+                document.getElementById('localVideo1').srcObject = localStream1;
+                
+                peerConnection1 = new RTCPeerConnection(iceServers);
+                
+                localStream1.getTracks().forEach(track => {
+                    peerConnection1.addTrack(track, localStream1);
+                });
+                
+                peerConnection1.ontrack = (event) => {
+                    document.getElementById('remoteVideo1').srcObject = event.streams[0];
+                    log('log1', '📺 Remote video stream received');
+                };
+                
+                peerConnection1.onicecandidate = (event) => {
+                    if (event.candidate) {
+                        socket1.emit('iceCandidate', {
+                            to: window.incomingCallerId1,
+                            candidate: event.candidate
+                        });
+                    }
+                };
+                
+                await peerConnection1.setRemoteDescription(new RTCSessionDescription(window.incomingOffer1));
+                const answer = await peerConnection1.createAnswer();
+                await peerConnection1.setLocalDescription(answer);
+                
+                socket1.emit('answerCall', {
+                    to: window.incomingCallerId1,
+                    signalData: answer
+                });
+                
+                document.getElementById('incomingCall1').style.display = 'none';
+                document.getElementById('startCall1').disabled = true;
+                document.getElementById('endCall1').disabled = false;
+                document.getElementById('toggleMute1').disabled = false;
+                if (isVideo) document.getElementById('toggleVideo1').disabled = false;
+                log('log1', '✅ Call connected');
+            } catch (error) {
+                log('log1', '❌ Error answering call: ' + error.message);
+            }
+        }
+
+        function rejectCall1() {
+            socket1.emit('rejectCall', { to: window.incomingCallerId1 });
+            document.getElementById('incomingCall1').style.display = 'none';
+            log('log1', '❌ Call rejected');
+        }
+
+        function endCall1() {
+            if (peerConnection1) {
+                peerConnection1.close();
+                peerConnection1 = null;
+            }
+            if (localStream1) {
+                localStream1.getTracks().forEach(track => track.stop());
+                localStream1 = null;
+            }
+            document.getElementById('localVideo1').srcObject = null;
+            document.getElementById('remoteVideo1').srcObject = null;
+            document.getElementById('startCall1').disabled = false;
+            document.getElementById('endCall1').disabled = true;
+            document.getElementById('toggleMute1').disabled = true;
+            document.getElementById('toggleVideo1').disabled = true;
+            document.getElementById('incomingCall1').style.display = 'none';
+        }
+
+        function toggleMute1() {
+            if (localStream1) {
+                const audioTrack = localStream1.getAudioTracks()[0];
+                if (audioTrack) {
+                    audioTrack.enabled = !audioTrack.enabled;
+                    const btn = document.getElementById('toggleMute1');
+                    btn.textContent = audioTrack.enabled ? '🎤 Mute' : '🔇 Unmute';
+                    log('log1', audioTrack.enabled ? '🎤 Unmuted' : '🔇 Muted');
+                }
+            }
+        }
+
+        function toggleVideo1() {
+            if (localStream1) {
+                const videoTrack = localStream1.getVideoTracks()[0];
+                if (videoTrack) {
+                    videoTrack.enabled = !videoTrack.enabled;
+                    const btn = document.getElementById('toggleVideo1');
+                    btn.textContent = videoTrack.enabled ? '📹 Camera Off' : '📷 Camera On';
+                    log('log1', videoTrack.enabled ? '📹 Camera on' : '📷 Camera off');
+                }
+            }
+        }
+
+        document.getElementById('startCall1').addEventListener('click', startCall1);
+        document.getElementById('endCall1').addEventListener('click', () => {
+            if (user2Data) {
+                socket1.emit('endCall', { to: user2Data.user._id });
+            }
+            endCall1();
+        });
+        document.getElementById('answerCall1').addEventListener('click', answerCall1);
+        document.getElementById('rejectCall1').addEventListener('click', rejectCall1);
+        document.getElementById('toggleMute1').addEventListener('click', toggleMute1);
+        document.getElementById('toggleVideo1').addEventListener('click', toggleVideo1);
+        document.getElementById('msg1').addEventListener('keypress', (e) => {
+            if (e.key === 'Enter') document.getElementById('send1').click();
+        });
+
+        // ========== USER 2 FUNCTIONS ==========
+        
+        document.getElementById('login2').addEventListener('click', async () => {
+            const email = document.getElementById('email2').value;
+            const pass = document.getElementById('pass2').value;
+            
+            try {
+                log('log2', '🔐 Logging in...');
+                const res = await fetch('http://localhost:5000/api/users/login', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ email, password: pass })
+                });
+
+                const data = await res.json();
+                if (!data.data?.accessToken) {
+                    log('log2', '❌ Login failed');
+                    return;
+                }
+
+                user2Data = data.data;
+                log('log2', '✅ Logged in as: ' + user2Data.user.username);
+
+                socket2 = io('http://localhost:5000', {
+                    extraHeaders: { Authorization: `Bearer ${user2Data.accessToken}` }
+                });
+
+                socket2.on('connect', () => {
+                    log('log2', '✅ Socket connected');
+                    document.getElementById('status2').textContent = 'Connected';
+                    document.getElementById('status2').classList.add('connected');
+                    document.getElementById('createChat2').disabled = false;
+                });
+
+                socket2.on('newMessage', (msg) => {
+                    if (msg.messageType === 'text') {
+                        log('log2', `📨 ${msg.senderId.username}: ${msg.content}`, 'received');
+                    } else {
+                        log('log2', `📨 ${msg.senderId.username} sent ${msg.messageType}: <a href="${msg.mediaUrl}" target="_blank">View</a>`, 'received');
+                    }
+                });
+
+                socket2.on('typing', (data) => {
+                    log('log2', `⌨️ User is typing...`);
+                });
+
+                socket2.on('callUser', async (data) => {
+                    const callType = data.callType || 'video';
+                    log('log2', `📞 Incoming ${callType} call from ${data.name}`);
+                    document.getElementById('callerName2').textContent = data.name;
+                    document.getElementById('callType2').textContent = callType + ' call';
+                    document.getElementById('incomingCall2').style.display = 'block';
+                    
+                    window.incomingOffer2 = data.signal;
+                    window.incomingCallerId2 = data.from;
+                    window.incomingCallType2 = callType;
+                });
+
+                socket2.on('callAccepted', async (signal) => {
+                    log('log2', '✅ Call accepted');
+                    if (peerConnection2) {
+                        await peerConnection2.setRemoteDescription(new RTCSessionDescription(signal));
+                    }
+                });
+
+                socket2.on('iceCandidate', async (candidate) => {
+                    if (peerConnection2 && candidate) {
+                        try {
+                            await peerConnection2.addIceCandidate(new RTCIceCandidate(candidate));
+                        } catch (e) {
+                            console.error('Error adding ICE candidate:', e);
+                        }
+                    }
+                });
+
+                socket2.on('callEnded', () => {
+                    log('log2', '📵 Call ended');
+                    endCall2();
+                });
+
+                socket2.on('callRejected', () => {
+                    log('log2', '❌ Call rejected');
+                    endCall2();
+                });
+
+            } catch (error) {
+                log('log2', '❌ Error: ' + error.message);
+            }
+        });
+
+        document.getElementById('createChat2').addEventListener('click', () => {
+            if (!chatId) {
+                log('log2', '⚠️ Waiting for User 1 to create chat...');
+                return;
+            }
+            socket2.emit('joinChat', chatId);
+            log('log2', '✅ Joined chat room: ' + chatId);
+            document.getElementById('msg2').disabled = false;
+            document.getElementById('send2').disabled = false;
+            document.getElementById('file2').disabled = false;
+            document.getElementById('sendMedia2').disabled = false;
+            document.getElementById('startCall2').disabled = false;
+        });
+
+        document.getElementById('send2').addEventListener('click', async () => {
+            const content = document.getElementById('msg2').value;
+            if (!content) return;
+
+            try {
+                const res = await fetch('http://localhost:5000/api/messages', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'Authorization': `Bearer ${user2Data.accessToken}`
+                    },
+                    body: JSON.stringify({ chatId, content })
+                });
+
+                const data = await res.json();
+                log('log2', `✉️ You: ${content}`, 'sent');
+                document.getElementById('msg2').value = '';
+            } catch (error) {
+                log('log2', '❌ Error: ' + error.message);
+            }
+        });
+
+        document.getElementById('sendMedia2').addEventListener('click', async () => {
+            const fileInput = document.getElementById('file2');
+            const file = fileInput.files[0];
+            if (!file) {
+                log('log2', '⚠️ Please select a file first');
+                return;
+            }
+
+            try {
+                log('log2', `📤 Uploading ${file.name}...`);
+                const formData = new FormData();
+                formData.append('file', file);
+                formData.append('chatId', chatId);
+
+                const res = await fetch('http://localhost:5000/api/messages/media', {
+                    method: 'POST',
+                    headers: { 'Authorization': `Bearer ${user2Data.accessToken}` },
+                    body: formData
+                });
+
+                const data = await res.json();
+                if (data.success) {
+                    log('log2', `✅ Media sent: ${file.name}`, 'sent');
+                    fileInput.value = '';
+                } else {
+                    log('log2', '❌ Upload failed: ' + data.message);
+                }
+            } catch (error) {
+                log('log2', '❌ Error: ' + error.message);
+            }
+        });
+
+        async function startCall2() {
+            if (!user1Data) {
+                log('log2', '⚠️ User 1 must be logged in');
+                return;
+            }
+            
+            try {
+                const callType = document.querySelector('input[name="callType2"]:checked').value;
+                const isVideo = callType === 'video';
+                
+                log('log2', `📹 Starting ${callType} call...`);
+                localStream2 = await navigator.mediaDevices.getUserMedia({ 
+                    video: isVideo, 
+                    audio: true 
+                });
+                document.getElementById('localVideo2').srcObject = localStream2;
+                
+                peerConnection2 = new RTCPeerConnection(iceServers);
+                
+                localStream2.getTracks().forEach(track => {
+                    peerConnection2.addTrack(track, localStream2);
+                });
+                
+                peerConnection2.ontrack = (event) => {
+                    document.getElementById('remoteVideo2').srcObject = event.streams[0];
+                    log('log2', '📺 Remote video stream received');
+                };
+                
+                peerConnection2.onicecandidate = (event) => {
+                    if (event.candidate) {
+                        socket2.emit('iceCandidate', {
+                            to: user1Data.user._id,
+                            candidate: event.candidate
+                        });
+                    }
+                };
+                
+                const offer = await peerConnection2.createOffer();
+                await peerConnection2.setLocalDescription(offer);
+                
+                socket2.emit('callUser', {
+                    to: user1Data.user._id,
+                    signalData: offer,
+                    from: user2Data.user._id,
+                    name: user2Data.user.username,
+                    callType: callType
+                });
+                
+                document.getElementById('startCall2').disabled = true;
+                document.getElementById('endCall2').disabled = false;
+                document.getElementById('toggleMute2').disabled = false;
+                if (isVideo) document.getElementById('toggleVideo2').disabled = false;
+                log('log2', `📞 Calling User 1 (${callType})...`);
+            } catch (error) {
+                log('log2', '❌ Error starting call: ' + error.message);
+            }
+        }
+
+        async function answerCall2() {
+            try {
+                const isVideo = window.incomingCallType2 === 'video';
+                log('log2', `📹 Answering ${window.incomingCallType2} call...`);
+                localStream2 = await navigator.mediaDevices.getUserMedia({ 
+                    video: isVideo, 
+                    audio: true 
+                });
+                document.getElementById('localVideo2').srcObject = localStream2;
+                
+                peerConnection2 = new RTCPeerConnection(iceServers);
+                
+                localStream2.getTracks().forEach(track => {
+                    peerConnection2.addTrack(track, localStream2);
+                });
+                
+                peerConnection2.ontrack = (event) => {
+                    document.getElementById('remoteVideo2').srcObject = event.streams[0];
+                    log('log2', '📺 Remote video stream received');
+                };
+                
+                peerConnection2.onicecandidate = (event) => {
+                    if (event.candidate) {
+                        socket2.emit('iceCandidate', {
+                            to: window.incomingCallerId2,
+                            candidate: event.candidate
+                        });
+                    }
+                };
+                
+                await peerConnection2.setRemoteDescription(new RTCSessionDescription(window.incomingOffer2));
+                const answer = await peerConnection2.createAnswer();
+                await peerConnection2.setLocalDescription(answer);
+                
+                socket2.emit('answerCall', {
+                    to: window.incomingCallerId2,
+                    signalData: answer
+                });
+                
+                document.getElementById('incomingCall2').style.display = 'none';
+                document.getElementById('startCall2').disabled = true;
+                document.getElementById('endCall2').disabled = false;
+                document.getElementById('toggleMute2').disabled = false;
+                if (isVideo) document.getElementById('toggleVideo2').disabled = false;
+                log('log2', '✅ Call connected');
+            } catch (error) {
+                log('log2', '❌ Error answering call: ' + error.message);
+            }
+        }
+
+        function rejectCall2() {
+            socket2.emit('rejectCall', { to: window.incomingCallerId2 });
+            document.getElementById('incomingCall2').style.display = 'none';
+            log('log2', '❌ Call rejected');
+        }
+
+        function endCall2() {
+            if (peerConnection2) {
+                peerConnection2.close();
+                peerConnection2 = null;
+            }
+            if (localStream2) {
+                localStream2.getTracks().forEach(track => track.stop());
+                localStream2 = null;
+            }
+            document.getElementById('localVideo2').srcObject = null;
+            document.getElementById('remoteVideo2').srcObject = null;
+            document.getElementById('startCall2').disabled = false;
+            document.getElementById('endCall2').disabled = true;
+            document.getElementById('toggleMute2').disabled = true;
+            document.getElementById('toggleVideo2').disabled = true;
+            document.getElementById('incomingCall2').style.display = 'none';
+        }
+
+        function toggleMute2() {
+            if (localStream2) {
+                const audioTrack = localStream2.getAudioTracks()[0];
+                if (audioTrack) {
+                    audioTrack.enabled = !audioTrack.enabled;
+                    const btn = document.getElementById('toggleMute2');
+                    btn.textContent = audioTrack.enabled ? '🎤 Mute' : '🔇 Unmute';
+                    log('log2', audioTrack.enabled ? '🎤 Unmuted' : '🔇 Muted');
+                }
+            }
+        }
+
+        function toggleVideo2() {
+            if (localStream2) {
+                const videoTrack = localStream2.getVideoTracks()[0];
+                if (videoTrack) {
+                    videoTrack.enabled = !videoTrack.enabled;
+                    const btn = document.getElementById('toggleVideo2');
+                    btn.textContent = videoTrack.enabled ? '📹 Camera Off' : '📷 Camera On';
+                    log('log2', videoTrack.enabled ? '📹 Camera on' : '📷 Camera off');
+                }
+            }
+        }
+
+        document.getElementById('startCall2').addEventListener('click', startCall2);
+        document.getElementById('endCall2').addEventListener('click', () => {
+            if (user1Data) {
+                socket2.emit('endCall', { to: user1Data.user._id });
+            }
+            endCall2();
+        });
+        document.getElementById('answerCall2').addEventListener('click', answerCall2);
+        document.getElementById('rejectCall2').addEventListener('click', rejectCall2);
+        document.getElementById('toggleMute2').addEventListener('click', toggleMute2);
+        document.getElementById('toggleVideo2').addEventListener('click', toggleVideo2);
+        document.getElementById('msg2').addEventListener('keypress', (e) => {
+            if (e.key === 'Enter') document.getElementById('send2').click();
+        });
+    </script>
+</body>
+</html>

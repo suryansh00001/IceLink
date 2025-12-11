@@ -11,8 +11,6 @@ type authSocket = Socket & {
     user?: any;
 };
 
-
-
 let io: Server;
 
 export const getIO = () => {
@@ -95,6 +93,45 @@ export const initSocket = (server: httpServer) => {
             console.log(`User ${socket.user?.username} stopped typing in chat ${chatId}`);
         }
         );
+
+        socket.on("callUser", (data: { to: string; signalData: any; from: string; name: string }) => {
+            io.to(data.to).emit("callUser", {
+                signal: data.signalData,
+                from: data.from,
+                name: data.name,
+            });
+            console.log(`User ${socket.user?.username} is calling user ID ${data.to}`);
+        });
+
+        socket.on("answerCall", (data: { to: string; signalData: any }) => {
+            io.to(data.to).emit("callAccepted", data.signalData);
+            console.log(`User ${socket.user?.username} answered call for user ID ${data.to}`);
+        });
+
+        socket.on("rejectCall", (data: { to: string }) => {
+            io.to(data.to).emit("callRejected");
+            console.log(`User ${socket.user?.username} rejected call for user ID ${data.to}`);
+        });
+
+        socket.on("cancelCall", (data: { to: string }) => {
+            io.to(data.to).emit("callCanceled");
+            console.log(`User ${socket.user?.username} canceled call for user ID ${data.to}`);
+        });
+
+        socket.on("userBusy", (data: { to: string }) => {
+            io.to(data.to).emit("userBusy");
+            console.log(`User ${socket.user?.username} is busy for user ID ${data.to}`);
+        });
+
+        socket.on("iceCandidate", (data: { to: string; candidate: any }) => {
+            io.to(data.to).emit("iceCandidate", data.candidate);
+            console.log(`User ${socket.user?.username} sent ICE candidate to user ID ${data.to}`);
+        });
+
+        socket.on("endCall", (data: { to: string }) => {
+            io.to(data.to).emit("callEnded");
+            console.log(`User ${socket.user?.username} ended call for user ID ${data.to}`);
+        });
 
 
     });

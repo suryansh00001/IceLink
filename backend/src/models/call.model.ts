@@ -2,6 +2,7 @@ import mongoose from "mongoose";
 import { Icall } from "../types/call";
 
 export interface ICallModel extends Icall, mongoose.Document {}
+
 const callSchema = new mongoose.Schema<ICallModel>({
     callerId: {
         type: mongoose.Schema.Types.ObjectId,
