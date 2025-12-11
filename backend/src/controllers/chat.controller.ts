@@ -166,7 +166,8 @@ const createGroupChat = async (req: Request, res: Response) => {
 
 const renameGroupChat = async (req: Request, res: Response) => {
     try {
-        const { chatId, newName } = req.body;
+        const chatId = req.params.id;
+        const { newName } = req.body;
         const user = (req as any).user;
         if (!user) {
             return res.status(401).json(new ErrorResponse(401, "Unauthorized"));
@@ -209,7 +210,8 @@ const renameGroupChat = async (req: Request, res: Response) => {
 };
 
 const addUserToGroupChat = async (req: Request, res: Response) => {
-    const { chatId, userId } = req.body;
+    const chatId = req.params.id;
+    const { userId } = req.body;
     const user = (req as any).user;
     if (!user) {
         return res.status(401).json(new ErrorResponse(401, "Unauthorized"));
@@ -247,7 +249,7 @@ const addUserToGroupChat = async (req: Request, res: Response) => {
       { new: true }
     );
 
-    
+
     const updatedChat = await Chat.findById(chatId)
         .populate("participants", "username avatarUrl")
         .populate({
@@ -264,7 +266,8 @@ const addUserToGroupChat = async (req: Request, res: Response) => {
 };
 
 const removeUserFromGroupChat = async (req: Request, res: Response) => {
-    const { chatId, userId } = req.body;
+    const chatId = req.params.id;
+    const { userId } = req.body;
     const user = (req as any).user;
     if (!user) {
         return res.status(401).json(new ErrorResponse(401, "Unauthorized"));
