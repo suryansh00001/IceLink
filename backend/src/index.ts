@@ -2,7 +2,6 @@ import express from "express";
 import http from "http";
 import cors from "cors";
 import cookieParser from "cookie-parser";
-import { Server } from "socket.io";
 
 import dotenv from "dotenv";
 dotenv.config();
@@ -13,6 +12,7 @@ connectDB();
 import userRoutes from "./routes/user.routes";
 import chatRoutes from "./routes/chat.routes";
 import messageRoutes from "./routes/message.routes";
+import { initSocket } from "./socket";
 
 const app = express();
 
@@ -32,17 +32,8 @@ app.use("/api/messages", messageRoutes);
 
 const server = http.createServer(app);
 
-const io = new Server(server, {
-  cors: { origin: "*" },
-});
-
-io.on("connection", (socket) => {
-  console.log("🧊 IceLink user connected:", socket.id);
-
-  socket.on("disconnect", () => {
-    console.log("❄ User disconnected:", socket.id);
-  });
-});
+// Initialize Socket.IO with authentication
+initSocket(server);
 
 const PORT = process.env.PORT || 5000;
 server.listen(PORT, () => {

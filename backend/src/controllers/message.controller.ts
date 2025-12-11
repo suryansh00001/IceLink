@@ -6,6 +6,8 @@ import ErrorResponse from "../utils/apiError";
 import Message from "../models/message.model";
 import mongoose from "mongoose";
 import uploadToCloudinary from "../utils/uploadToCloudinary";
+import { getIO } from "../socket";
+
 
 const sendMessage = async (req: Request, res: Response) => {
     try {
@@ -48,6 +50,10 @@ const sendMessage = async (req: Request, res: Response) => {
         const fullMessage = await Message.findById(message._id)
           .populate("senderId", "username avatarUrl")
           .populate("chatId");
+
+        const io = getIO();
+
+        io.to(chatId.toString()).emit("newMessage", fullMessage);
 
 
         res.status(201).json(new ApiResponse(201, "Message sent successfully", { message: fullMessage }));
@@ -108,6 +114,11 @@ const sendMediaMessage = async (req: Request, res: Response) => {
         const fullMessage = await Message.findById(message._id)
             .populate("senderId", "username avatarUrl") 
             .populate("chatId");
+
+        const io = getIO();
+
+        io.to(chatId.toString()).emit("newMessage", fullMessage);
+
         res.status(201).json(new ApiResponse(201, "Media message sent successfully", { message: fullMessage }));
 
         }
@@ -148,6 +159,7 @@ const getMessages = async (req: Request, res: Response) => {
             .populate("senderId", "username avatarUrl")
             .populate("chatId")
             .sort({ createdAt: 1 });
+
 
         res
         .status(200)
