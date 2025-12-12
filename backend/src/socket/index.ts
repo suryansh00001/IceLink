@@ -127,13 +127,14 @@ export const initSocket = (server: httpServer) => {
         }
         );
 
-        socket.on("callUser", (data: { to: string; signalData: any; from: string; name: string }) => {
+        socket.on("callUser", (data: { to: string; signalData: any; from: string; name: string; callType: string }) => {
             io.to(data.to).emit("callUser", {
                 signal: data.signalData,
                 from: data.from,
                 name: data.name,
+                callType: data.callType,
             });
-            console.log(`User ${socket.user?.username} is calling user ID ${data.to}`);
+            console.log(`User ${socket.user?.username} is calling user ID ${data.to} (${data.callType})`);
         });
 
         socket.on("answerCall", (data: { to: string; signalData: any }) => {

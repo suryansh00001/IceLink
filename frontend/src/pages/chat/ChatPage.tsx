@@ -2,6 +2,8 @@ import SideBar  from "../../components/layout/Sidebar";
 import ChatList from "../../components/chat/ChatList";
 import ChatRoom from "./ChatRoom";  
 import Navbar from "../../components/layout/Navbar";
+import IncomingCallModal from "../../components/call/IncomingCallModal";
+import CallWindow from "../../components/call/CallWindow";
 import {useChats} from "../../context/ChatContext";
 import { useEffect } from "react";
 import { getUserChats } from "../../api/chat.api";
@@ -30,6 +32,8 @@ const ChatPage = () => {
                 <ChatList />
                 <ChatRoom />
             </div>
+            <IncomingCallModal />
+            <CallWindow />
         </div>
     );
 }

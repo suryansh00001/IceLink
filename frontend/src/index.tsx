@@ -6,6 +6,7 @@ import App from './App';
 import { AuthProvider } from "./context/AuthContext";
 import { ChatProvider } from "./context/ChatContext";
 import { SocketProvider } from "./context/SocketContext";
+import { CallProvider } from "./context/CallContext";
 
 const root = ReactDOM.createRoot(
   document.getElementById('root') as HTMLElement
@@ -14,11 +15,13 @@ root.render(
   <React.StrictMode>
     <AuthProvider>
       <SocketProvider>
-        <ChatProvider>
-          <BrowserRouter>
-            <App />
-          </BrowserRouter>
-        </ChatProvider>
+        <CallProvider>
+          <ChatProvider>
+            <BrowserRouter>
+              <App />
+            </BrowserRouter>
+          </ChatProvider>
+        </CallProvider>
       </SocketProvider>
     </AuthProvider>
   </React.StrictMode>

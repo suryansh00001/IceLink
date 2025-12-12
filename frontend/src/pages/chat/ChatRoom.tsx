@@ -1,5 +1,6 @@
 import { useChats } from "../../context/ChatContext";
 import { useAuth } from "../../context/AuthContext";
+import { useCall } from "../../context/CallContext";
 import { useEffect, useState, useRef } from "react";
 import { IMessage } from "../../types/message";
 import { getMessagesByChatId, sendMessage, uploadMedia } from "../../api/message.api";
@@ -10,9 +11,11 @@ import Avatar from "../../components/common/Avatar";
 
 
 
+
 export default function ChatRoom() {
     const { selectedChat, messages, setMessages } = useChats();
     const { user } = useAuth();
+    const { initiateCall } = useCall();
     const [newMessage, setNewMessage] = useState("");
     const { socket } = useSocket();
     const [istyping, setIsTyping] = useState(false);
@@ -205,15 +208,45 @@ export default function ChatRoom() {
                 {!selectedChat && (
                     <h2 className="text-xl font-semibold text-gray-800">Select a chat</h2>
                 )}
-                {selectedChat?.isGroupChat && (
-                    <button
-                        onClick={() => setShowGroupSettings(true)}
-                        className="text-gray-600 hover:text-primary transition text-2xl"
-                        title="Group Settings"
-                    >
-                        ⚙️
-                    </button>
-                )}
+                <div className="flex items-center gap-2">
+                    {selectedChat && !selectedChat.isGroupChat && (
+                        <>
+                            <button
+                                onClick={() => {
+                                    const otherUser = selectedChat.participants.find(p => p._id !== user?._id);
+                                    if (otherUser) {
+                                        initiateCall(otherUser._id, otherUser.username, "audio");
+                                    }
+                                }}
+                                className="text-gray-600 hover:text-green-600 transition text-2xl"
+                                title="Audio Call"
+                            >
+                                📞
+                            </button>
+                            <button
+                                onClick={() => {
+                                    const otherUser = selectedChat.participants.find(p => p._id !== user?._id);
+                                    if (otherUser) {
+                                        initiateCall(otherUser._id, otherUser.username, "video");
+                                    }
+                                }}
+                                className="text-gray-600 hover:text-blue-600 transition text-2xl"
+                                title="Video Call"
+                            >
+                                📹
+                            </button>
+                        </>
+                    )}
+                    {selectedChat?.isGroupChat && (
+                        <button
+                            onClick={() => setShowGroupSettings(true)}
+                            className="text-gray-600 hover:text-primary transition text-2xl"
+                            title="Group Settings"
+                        >
+                            ⚙️
+                        </button>
+                    )}
+                </div>
             </div>
 
             {/* Messages Area */}
