@@ -31,42 +31,94 @@ const Login: React.FC = () => {
 
 
     return (
-        <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-ice-100 via-ice-50 to-white">
-        <form onSubmit={handleSubmit} className="ice-card p-10 w-full max-w-md">
-            <div className="text-center mb-8">
-                <svg className="w-20 h-20 mx-auto mb-4 text-ice-500" viewBox="0 0 24 24" fill="currentColor">
-                    <path d="M12 2L2 7v10l10 5 10-5V7L12 2zm0 2.18L19.82 8 12 11.82 4.18 8 12 4.18zM4 9.68l7 3.5v6.64l-7-3.5V9.68zm16 0v6.64l-7 3.5v-6.64l7-3.5z"/>
-                </svg>
-                <h2 className="text-3xl font-bold bg-gradient-to-r from-ice-600 to-ice-800 bg-clip-text text-transparent">Welcome to IceLink</h2>
-                <p className="text-ice-600 text-sm mt-2">Sign in to continue</p>
+        <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-ice-900 via-ice-800 to-ice-900 relative overflow-hidden">
+            {/* Animated Background */}
+            <div className="absolute inset-0 overflow-hidden pointer-events-none">
+                <div className="absolute top-0 left-1/4 w-96 h-96 bg-ice-500/10 rounded-full blur-3xl animate-pulse"></div>
+                <div className="absolute bottom-0 right-1/4 w-96 h-96 bg-ice-400/10 rounded-full blur-3xl animate-pulse" style={{animationDelay: '1s'}}></div>
             </div>
-            <div className="mb-5">
-            <label className="block text-ice-700 font-medium mb-2" htmlFor="email">Email</label>
-            <input
-                type="email" 
-                id="email"
-                value={email}
-                onChange={(e) => setEmail(e.target.value)}
-                className="w-full px-4 py-3 ice-input"
-                placeholder="your@email.com"
-                required
-            />
+
+            <div className="relative z-10 w-full max-w-md px-4">
+                {/* Logo/Brand */}
+                <div className="text-center mb-8">
+                    <div className="inline-flex items-center gap-3 mb-4">
+                        <svg className="w-12 h-12 text-ice-400" fill="currentColor" viewBox="0 0 24 24">
+                            <path d="M12 2L2 7v10c0 5.55 3.84 10.74 9 12 5.16-1.26 9-6.45 9-12V7l-10-5zm0 2.18l8 3.6v8.72c0 4.35-2.98 8.41-7 9.62V3.78l-1 .4z"/>
+                            <path d="M12 6c-3.31 0-6 2.69-6 6s2.69 6 6 6 6-2.69 6-6-2.69-6-6-6zm0 10c-2.21 0-4-1.79-4-4s1.79-4 4-4 4 1.79 4 4-1.79 4-4 4z" opacity="0.5"/>
+                        </svg>
+                        <span className="text-3xl font-bold bg-gradient-to-r from-ice-200 via-white to-ice-300 bg-clip-text text-transparent">
+                            IceLink
+                        </span>
+                    </div>
+                </div>
+
+                {/* Form Card */}
+                <form onSubmit={handleSubmit} className="bg-ice-900/50 backdrop-blur-xl border border-ice-700/30 rounded-2xl p-8 shadow-2xl">
+                    <div className="text-center mb-8">
+                        <h2 className="text-4xl font-bold bg-gradient-to-r from-white via-ice-100 to-ice-200 bg-clip-text text-transparent mb-2">Welcome Back</h2>
+                        <p className="text-ice-300">Sign in to continue your conversations</p>
+                    </div>
+
+                    <div className="space-y-6">
+                        <div>
+                            <label className="block text-ice-200 font-medium mb-2" htmlFor="email">
+                                Email Address
+                            </label>
+                            <div className="relative">
+                                <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                                    <svg className="w-5 h-5 text-ice-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M16 12a4 4 0 10-8 0 4 4 0 008 0zm0 0v1.5a2.5 2.5 0 005 0V12a9 9 0 10-9 9m4.5-1.206a8.959 8.959 0 01-4.5 1.207" />
+                                    </svg>
+                                </div>
+                                <input
+                                    type="email" 
+                                    id="email"
+                                    value={email}
+                                    onChange={(e) => setEmail(e.target.value)}
+                                    className="w-full pl-11 pr-4 py-3 bg-ice-950/50 border border-ice-700/50 rounded-lg text-white placeholder-ice-400 focus:border-ice-500 focus:ring-2 focus:ring-ice-500/50 focus:outline-none transition-all"
+                                    placeholder="your@email.com"
+                                    required
+                                />
+                            </div>
+                        </div>
+
+                        <div>
+                            <label className="block text-ice-200 font-medium mb-2" htmlFor="password">
+                                Password
+                            </label>
+                            <input
+                                type="password"
+                                id="password"
+                                value={password}
+                                onChange={(e) => setPassword(e.target.value)}
+                                className="w-full px-4 py-3 bg-ice-950/50 border border-ice-700/50 rounded-lg text-white placeholder-ice-400 focus:border-ice-500 focus:ring-2 focus:ring-ice-500/50 focus:outline-none transition-all"
+                                placeholder="••••••••"
+                                required
+                            />
+                        </div>
+                    </div>
+
+                    <button 
+                        type="submit" 
+                        className="w-full mt-8 px-8 py-4 bg-gradient-to-r from-ice-400 to-ice-500 hover:from-ice-500 hover:to-ice-600 text-white font-bold text-lg rounded-xl shadow-lg hover:shadow-ice-500/50 transition-all duration-300 hover:scale-105"
+                    >
+                        Sign In
+                    </button>
+
+                    <div className="mt-6 text-center">
+                        <p className="text-ice-300">
+                            Don't have an account?{' '}
+                            <button
+                                type="button"
+                                onClick={() => navigate('/register')}
+                                className="text-ice-400 hover:text-ice-300 font-semibold transition-colors"
+                            >
+                                Sign up
+                            </button>
+                        </p>
+                    </div>
+                </form>
             </div>
-            <div className="mb-6">
-            <label className="block text-ice-700 font-medium mb-2" htmlFor="password">Password</label>
-            <input type="password"
-                     id="password"
-                     value={password}
-                     onChange={(e) => setPassword(e.target.value)}
-                        className="w-full px-4 py-3 ice-input"
-                        placeholder="••••••••"
-                        required
-            />
-            </div>
-            <button type="submit" className="w-full ice-button py-3 text-lg font-semibold">
-            Sign In
-            </button>
-        </form>
         </div>
     );
 }   
