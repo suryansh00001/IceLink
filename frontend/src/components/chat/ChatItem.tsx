@@ -20,6 +20,28 @@ const ChatItem = ({ chat }: { chat: Ichat }) => {
     ? undefined 
     : otherUser?.avatarUrl;
 
+  const getLastMessagePreview = () => {
+    if (!chat.lastMessage) return "No messages yet";
+
+    const { messageType, content, mediaUrl, sender } = chat.lastMessage;
+    const senderName = chat.isGroupChat && sender 
+      ? `${sender.username}: ` 
+      : "";
+
+    switch (messageType) {
+      case "text":
+        return `${senderName}${content}`;
+      case "image":
+        return `${senderName}📷 Image`;
+      case "video":
+        return `${senderName}🎥 Video`;
+      case "file":
+        return `${senderName}📎 File`;
+      default:
+        return `${senderName}Message`;
+    }
+  };
+
   return (
     <div
       onClick={() => selectChat(chat)}
@@ -40,11 +62,9 @@ const ChatItem = ({ chat }: { chat: Ichat }) => {
       )}
       <div className="flex-1 min-w-0">
         <div className="font-medium text-gray-900 truncate">{displayName}</div>
-        {chat.isGroupChat && (
-          <div className="text-xs text-gray-500">
-            {chat.participants.length} members
-          </div>
-        )}
+        <div className="text-sm text-gray-500 truncate">
+          {getLastMessagePreview()}
+        </div>
       </div>
     </div>
   );

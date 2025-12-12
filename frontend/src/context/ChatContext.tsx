@@ -61,8 +61,23 @@ export const ChatProvider = ({ children }: { children: React.ReactNode }) => {
 
         socket.on("userAvatarUpdated", handleAvatarUpdate);
 
+        const handleMessageReceived = (message: IMessage) => {
+            setChats(prev => prev.map(chat => 
+                chat._id === message.chatId 
+                    ? { ...chat, lastMessage: message }
+                    : chat
+            ).sort((a, b) => {
+                const aTime = a.lastMessage?.createdAt || a.updatedAt;
+                const bTime = b.lastMessage?.createdAt || b.updatedAt;
+                return new Date(bTime).getTime() - new Date(aTime).getTime();
+            }));
+        };
+
+        socket.on("message-received", handleMessageReceived);
+
         return () => {
             socket.off("userAvatarUpdated", handleAvatarUpdate);
+            socket.off("message-received", handleMessageReceived);
         };
     }, [socket, selectedChat]);
 
