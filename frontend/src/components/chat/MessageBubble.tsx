@@ -1,5 +1,6 @@
 import { IMessage } from "../../types/message"; 
 import { useAuth } from "../../context/AuthContext";
+import Avatar from "../common/Avatar";
 
 interface MessageBubbleProps {
   message: IMessage;
@@ -9,14 +10,29 @@ const MessageBubble: React.FC<MessageBubbleProps> = ({ message }) => {
     const { user } = useAuth();
     const isOwnMessage = message.sender?._id === user?._id;
     return (
-        <div
-            className={`p-3 rounded-md max-w-xs ${
-                isOwnMessage
-                    ? "bg-blue-600 text-white ml-auto"
-                    : "bg-gray-700 text-gray-100"
-            }`}
-        >
-        {message.messageType === "text" && (
+        <div className={`flex gap-2 ${isOwnMessage ? 'justify-end' : 'justify-start'}`}>
+            {!isOwnMessage && message.sender && (
+                <Avatar
+                    src={message.sender.avatarUrl}
+                    name={message.sender.username}
+                    size="sm"
+                    showOnline={true}
+                    userId={message.sender._id}
+                />
+            )}
+            <div
+                className={`p-3 rounded-md max-w-xs ${
+                    isOwnMessage
+                        ? "bg-blue-600 text-white"
+                        : "bg-gray-700 text-gray-100"
+                }`}
+            >
+                {!isOwnMessage && message.sender && (
+                    <div className="text-xs font-semibold mb-1 opacity-80">
+                        {message.sender.username}
+                    </div>
+                )}
+                {message.messageType === "text" && (
             <p>{message.content}</p>
         )}
 
@@ -51,7 +67,16 @@ const MessageBubble: React.FC<MessageBubbleProps> = ({ message }) => {
                 </div>
             </div>
         )}
-
+            </div>
+            {isOwnMessage && message.sender && (
+                <Avatar
+                    src={message.sender.avatarUrl}
+                    name={message.sender.username}
+                    size="sm"
+                    showOnline={true}
+                    userId={message.sender._id}
+                />
+            )}
         </div>
     );
 }

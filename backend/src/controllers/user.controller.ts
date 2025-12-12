@@ -6,6 +6,7 @@ import ApiResponse from "../utils/apiResponse";
 import ErrorResponse from "../utils/apiError";
 import { userInfo } from "os";
 import uploadToCloudinary  from "../utils/uploadToCloudinary";
+import { getIO } from "../socket/index";
 
 const JWT_SECRET = process.env.JWT_SECRET;
 const REFRESH_TOKEN_SECRET = process.env.REFRESH_TOKEN_SECRET;
@@ -191,20 +192,36 @@ const updateDetails = async (req: Request, res: Response) => {
 };
 
 const updateAvatar = async (req: Request, res: Response) => {
-    const user= (req as any).user;
-    if (!user) {
-        return res.status(401).json(new ErrorResponse(401, "Unauthorized"));
-    }
-    if (!req.file) {
-        return res.status(400).json(new ErrorResponse(400, "No file uploaded"));
-    }
+    try {
+        const user= (req as any).user;
+        if (!user) {
+            return res.status(401).json(new ErrorResponse(401, "Unauthorized"));
+        }
+        if (!req.file) {
+            return res.status(400).json(new ErrorResponse(400, "No file uploaded"));
+        }
 
-    const url = await uploadToCloudinary(req.file.buffer, "avatars");
-    user.avatarUrl = url;
-    await user.save({ validateBeforeSave: false });
-    res
-      .status(200)
-      .json(new ApiResponse(200, "Avatar updated successfully", { avatarUrl: url }));
+        const url = await uploadToCloudinary(req.file.buffer, "avatars");
+        user.avatarUrl = url;
+        await user.save({ validateBeforeSave: false });
+        
+        try {
+            const io = getIO();
+            io.emit("userAvatarUpdated", {
+                userId: user._id.toString(),
+                avatarUrl: url
+            });
+        } catch (socketError) {
+            console.error("Failed to broadcast avatar update:", socketError);
+        }
+        
+        res
+          .status(200)
+          .json(new ApiResponse(200, "Avatar updated successfully", { avatarUrl: url }));
+    } catch (error) {
+        console.error("Avatar upload error:", error);
+        res.status(500).json(new ErrorResponse(500, `Failed to upload avatar: ${error.message}`));
+    }
 }
 
 const changePassword = async (req: Request, res: Response) => {

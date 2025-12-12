@@ -3,6 +3,7 @@ import { addUserToGroupChat, removeUserFromGroupChat, renameGroupChat } from '..
 import { Ichat } from '../../types/chat';
 import { useAuth } from '../../context/AuthContext';
 import { useChats } from '../../context/ChatContext';
+import Avatar from '../common/Avatar';
 
 interface GroupSettingsModalProps {
     isOpen: boolean;
@@ -136,9 +137,13 @@ const GroupSettingsModal: React.FC<GroupSettingsModalProps> = ({ isOpen, onClose
                                     className="flex items-center justify-between p-2 bg-gray-50 rounded"
                                 >
                                     <div className="flex items-center gap-2">
-                                        <div className="w-8 h-8 rounded-full bg-primary text-white flex items-center justify-center text-sm">
-                                            {participant.username?.charAt(0).toUpperCase()}
-                                        </div>
+                                        <Avatar
+                                            src={participant.avatarUrl}
+                                            name={participant.username}
+                                            size="sm"
+                                            showOnline={true}
+                                            userId={participant._id}
+                                        />
                                         <span className="text-gray-800">
                                             {participant.username}
                                             {participant._id === user?._id && ' (You)'}

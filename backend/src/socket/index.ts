@@ -71,22 +71,22 @@ export const initSocket = (server: httpServer) => {
             const userId = socket.user?._id;
             if (!userId) return;
 
-            // Mark user online
             await User.findByIdAndUpdate(userId, {
                 socketId: socket.id,
                 isOnline: true
             }).exec();
 
-            // Join personal room
             socket.join(userId.toString());
 
-            // Notify all clients this user is now online
+            const onlineUsers = await User.find({ isOnline: true }).select("_id").exec();
+            const onlineUserIds = onlineUsers.map(u => u._id.toString());
+            socket.emit("initialOnlineUsers", onlineUserIds);
+
             io.emit("onlineUsers", {
                 userId,
                 isOnline: true
             });
 
-            // Handle disconnect
             socket.on("disconnect", async () => {
                 console.log("❄ User disconnected:", socket.id);
 
@@ -95,7 +95,6 @@ export const initSocket = (server: httpServer) => {
                     isOnline: false
                 }).exec();
 
-                // Notify all clients this user is now offline
                 io.emit("onlineUsers", {
                     userId,
                     isOnline: false

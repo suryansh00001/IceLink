@@ -37,7 +37,14 @@ export const SocketProvider = ({ children }: { children: React.ReactNode }) => {
             console.error("Socket connection error:", error.message);
         });
 
-        // Backend emits: { userId, isOnline }
+        newSocket.on("initialOnlineUsers", (userIds: string[]) => {
+            const onlineUsersMap: Record<string, boolean> = {};
+            userIds.forEach(id => {
+                onlineUsersMap[id] = true;
+            });
+            setOnlineUsers(onlineUsersMap);
+        });
+
         newSocket.on("onlineUsers", ({ userId, isOnline }) => {
             setOnlineUsers(prev => ({
                 ...prev,

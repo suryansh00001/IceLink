@@ -1,6 +1,7 @@
 import SideBar  from "../../components/layout/Sidebar";
 import ChatList from "../../components/chat/ChatList";
 import ChatRoom from "./ChatRoom";  
+import Navbar from "../../components/layout/Navbar";
 import {useChats} from "../../context/ChatContext";
 import { useEffect } from "react";
 import { getUserChats } from "../../api/chat.api";
@@ -22,10 +23,13 @@ const ChatPage = () => {
     }, [setChats]);
     
     return (
-        <div className="flex h-screen">
-            <SideBar />
-            <ChatList />
-            <ChatRoom />
+        <div className="flex flex-col h-screen">
+            <Navbar />
+            <div className="flex flex-1 overflow-hidden">
+                <SideBar />
+                <ChatList />
+                <ChatRoom />
+            </div>
         </div>
     );
 }

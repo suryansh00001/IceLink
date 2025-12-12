@@ -6,6 +6,7 @@ import { getMessagesByChatId, sendMessage, uploadMedia } from "../../api/message
 import MessageBubble from "../../components/chat/MessageBubble";
 import { useSocket } from "../../context/SocketContext";
 import GroupSettingsModal from "../../components/chat/GroupSettingsModal";
+import Avatar from "../../components/common/Avatar";
 
 
 
@@ -179,13 +180,31 @@ export default function ChatRoom() {
         <div className="flex-1 flex flex-col bg-white">
             {/* Header */}
             <div className="p-4 border-b border-gray-300 bg-white shadow-sm flex justify-between items-center">
-                <h2 className="text-xl font-semibold text-gray-800">
-                    {selectedChat
-                        ? selectedChat.isGroupChat
-                            ? selectedChat.groupChatName
-                            : selectedChat.participants[0]?.username
-                        : "Select a chat"}
-                </h2>
+                {selectedChat && (
+                    <div className="flex items-center gap-3">
+                        {selectedChat.isGroupChat ? (
+                            <div className="w-10 h-10 rounded-full bg-gradient-to-br from-green-500 to-teal-600 flex items-center justify-center text-white font-semibold text-lg">
+                                👥
+                            </div>
+                        ) : (
+                            <Avatar
+                                src={selectedChat.participants.find(p => p._id !== user?._id)?.avatarUrl}
+                                name={selectedChat.participants.find(p => p._id !== user?._id)?.username || "User"}
+                                size="md"
+                                showOnline={true}
+                                userId={selectedChat.participants.find(p => p._id !== user?._id)?._id}
+                            />
+                        )}
+                        <h2 className="text-xl font-semibold text-gray-800">
+                            {selectedChat.isGroupChat
+                                ? selectedChat.groupChatName
+                                : selectedChat.participants.find(p => p._id !== user?._id)?.username || "User"}
+                        </h2>
+                    </div>
+                )}
+                {!selectedChat && (
+                    <h2 className="text-xl font-semibold text-gray-800">Select a chat</h2>
+                )}
                 {selectedChat?.isGroupChat && (
                     <button
                         onClick={() => setShowGroupSettings(true)}

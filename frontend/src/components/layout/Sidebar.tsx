@@ -3,6 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../../context/AuthContext';
 import NewChatModal from '../chat/NewChatModal';
 import NewGroupModal from '../chat/NewGroupModal';
+import Avatar from '../common/Avatar';
 
 const SideBar = () => {
     const navigate = useNavigate();
@@ -13,10 +14,17 @@ const SideBar = () => {
     return (
         <>
             <div className='w-20 h-screen bg-primary text-white flex flex-col items-center py-4'>
-                <div className='w-12 h-12 rounded-full bg-white text-primary flex items-center justify-center font-bold mb-6'>
-                    {user?.username?.charAt(0).toUpperCase() || 'U'}
-                </div>
-                
+                {user && (
+                    <div className='mb-6'>
+                        <Avatar
+                            src={user.avatarUrl}
+                            name={user.username}
+                            size="lg"
+                            showOnline={true}
+                            userId={user._id}
+                        />
+                    </div>
+                )}
                 <button 
                     onClick={() => setShowNewChatModal(true)} 
                     className='w-12 h-12 rounded-lg bg-white text-primary hover:bg-gray-100 transition duration-200 mb-4 flex items-center justify-center text-2xl font-bold'
