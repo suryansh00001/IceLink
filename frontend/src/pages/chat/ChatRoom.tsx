@@ -1,10 +1,11 @@
 import { useChats } from "../../context/ChatContext";
 import { useAuth } from "../../context/AuthContext";
-import { useEffect, useState } from "react";
+import { useEffect, useState, useRef } from "react";
 import { IMessage } from "../../types/message";
 import { getMessagesByChatId, sendMessage, uploadMedia } from "../../api/message.api";
 import MessageBubble from "../../components/chat/MessageBubble";
 import { useSocket } from "../../context/SocketContext";
+
 
 
 export default function ChatRoom() {
@@ -12,6 +13,69 @@ export default function ChatRoom() {
     const { user } = useAuth();
     const [newMessage, setNewMessage] = useState("");
     const { socket } = useSocket();
+    const [istyping, setIsTyping] = useState(false);
+    const [isOtherTyping, setIsOtherTyping] = useState(false);
+    const bottomRef = useRef<HTMLDivElement>(null);
+    const messagesContainerRef = useRef<HTMLDivElement>(null);
+
+
+    const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+        setNewMessage(e.target.value);
+        if(!socket || !selectedChat) {
+            return;
+        }
+
+        if(!istyping) {
+            setIsTyping(true);
+            socket.emit("typing", selectedChat._id);
+        }
+
+        let lastTypingTime = new Date().getTime();
+        const timerLength = 3000;
+        setTimeout(() => {
+            const timeNow = new Date().getTime();
+            const timeDiff = timeNow - lastTypingTime;
+            if(timeDiff >= timerLength && istyping) {
+                socket.emit("stopTyping", selectedChat._id);
+                setIsTyping(false);
+            }
+        }, timerLength);
+    }
+
+    useEffect(() => {
+        if (messagesContainerRef.current) {
+            messagesContainerRef.current.scrollTop = messagesContainerRef.current.scrollHeight;
+        }
+    }, [messages, isOtherTyping]);
+
+    useEffect(() => {
+        if (!socket) return;
+
+        const handleTyping = (data: { chatId: string; userId: string }) => {
+            if (selectedChat && data.chatId === selectedChat._id && data.userId !== user?._id) {
+                setIsOtherTyping(true);
+                console.log(`User ${data.userId} is typing in chat ${data.chatId}`);
+            }
+        };
+        const handleStopTyping = (data: { chatId: string; userId: string }) => {
+            if (selectedChat && data.chatId === selectedChat._id && data.userId !== user?._id) {
+                setIsOtherTyping(false);
+
+                console.log(`User ${data.userId} stopped typing in chat ${data.chatId}`);
+            }
+        };
+
+        socket.on("typing", handleTyping);
+        socket.on("stopTyping", handleStopTyping);
+        return () => {
+            socket.off("typing", handleTyping);
+            socket.off("stopTyping", handleStopTyping);
+        }
+    }, [socket, selectedChat, user?._id]);
+
+        
+
+
 
     useEffect(() => {
         if (socket && selectedChat) {
@@ -123,7 +187,7 @@ export default function ChatRoom() {
             </div>
 
             {/* Messages Area */}
-            <div className="flex-1 p-4 overflow-y-auto bg-gray-50 space-y-2">
+            <div ref={messagesContainerRef} className="flex-1 p-4 overflow-y-auto bg-gray-50 space-y-2">
                 {!selectedChat ? (
                     <div className="flex items-center justify-center h-full text-gray-500">
                         <div className="text-center">
@@ -135,9 +199,22 @@ export default function ChatRoom() {
                         <p>No messages yet. Start the conversation!</p>
                     </div>
                 ) : (
-                    messages.map((msg) => (
-                        <MessageBubble key={msg._id} message={msg} />
-                    ))
+                    <>
+                        {messages.map((msg) => (
+                            <MessageBubble key={msg._id} message={msg} />
+                        ))}
+                        <div ref={bottomRef} />
+                    </>
+                )}
+                {isOtherTyping && (
+                    <div className="flex items-center gap-2 text-gray-500 text-sm ml-2">
+                        <div className="flex gap-1">
+                            <span className="w-2 h-2 bg-gray-400 rounded-full animate-bounce" style={{ animationDelay: '0ms' }}></span>
+                            <span className="w-2 h-2 bg-gray-400 rounded-full animate-bounce" style={{ animationDelay: '150ms' }}></span>
+                            <span className="w-2 h-2 bg-gray-400 rounded-full animate-bounce" style={{ animationDelay: '300ms' }}></span>
+                        </div>
+                        <span>typing...</span>
+                    </div>
                 )}
             </div>
 
@@ -161,7 +238,7 @@ export default function ChatRoom() {
                     <input
                         type="text"
                         placeholder={selectedChat ? "Type a message..." : "Select a chat first"}
-                        onChange={(e) => setNewMessage(e.target.value)}
+                        onChange={(e) => { handleInputChange(e); }}
                         value={newMessage}
                         disabled={!selectedChat}
                         className="flex-1 px-4 py-2 rounded-full border border-gray-300 focus:outline-none focus:border-primary disabled:bg-gray-100"
