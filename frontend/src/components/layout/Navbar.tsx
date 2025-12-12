@@ -42,9 +42,14 @@ const Navbar = () => {
     };
 
     return (
-        <nav className="bg-gradient-to-r from-blue-600 to-purple-600 text-white p-4 flex items-center justify-between shadow-lg">
+        <nav className="bg-gradient-to-r from-ice-600 via-ice-500 to-ice-700 text-white p-4 flex items-center justify-between shadow-xl border-b-2 border-ice-400/30">
             <div className="flex items-center gap-3">
-                <div className="text-2xl font-bold">🧊 IceLink</div>
+                <div className="text-2xl font-bold flex items-center gap-2">
+                    <svg className="w-8 h-8 text-ice-100" viewBox="0 0 24 24" fill="currentColor">
+                        <path d="M12 2L2 7v10l10 5 10-5V7L12 2zm0 2.18L19.82 8 12 11.82 4.18 8 12 4.18zM4 9.68l7 3.5v6.64l-7-3.5V9.68zm16 0v6.64l-7 3.5v-6.64l7-3.5z"/>
+                    </svg>
+                    <span className="bg-gradient-to-r from-ice-100 to-white bg-clip-text text-transparent">IceLink</span>
+                </div>
             </div>
 
             <div className="flex items-center gap-4">

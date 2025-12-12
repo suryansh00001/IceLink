@@ -45,10 +45,10 @@ const ChatItem = ({ chat }: { chat: Ichat }) => {
   return (
     <div
       onClick={() => selectChat(chat)}
-      className="p-3 border-b border-gray-200 hover:bg-gray-50 cursor-pointer flex items-center gap-3 transition-colors"
+      className="p-3 border-b border-ice-100 hover:bg-gradient-to-r hover:from-ice-50 hover:to-ice-100/50 cursor-pointer flex items-center gap-3 transition-all duration-300 hover:shadow-md hover:border-ice-200"
     >
       {chat.isGroupChat ? (
-        <div className="w-10 h-10 rounded-full bg-gradient-to-br from-green-500 to-teal-600 flex items-center justify-center text-white font-semibold">
+        <div className="w-10 h-10 rounded-full bg-gradient-to-br from-ice-400 to-ice-600 flex items-center justify-center text-white font-semibold shadow-md">
           👥
         </div>
       ) : (
@@ -61,8 +61,8 @@ const ChatItem = ({ chat }: { chat: Ichat }) => {
         />
       )}
       <div className="flex-1 min-w-0">
-        <div className="font-medium text-gray-900 truncate">{displayName}</div>
-        <div className="text-sm text-gray-500 truncate">
+        <div className="font-semibold text-ice-900 truncate">{displayName}</div>
+        <div className="text-sm text-ice-600 truncate">
           {getLastMessagePreview()}
         </div>
       </div>

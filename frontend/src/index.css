@@ -1,3 +1,23 @@
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
+
+@layer base {
+  body {
+    @apply bg-gradient-to-br from-ice-50 to-ice-100;
+  }
+}
+
+@layer components {
+  .ice-card {
+    @apply bg-white/90 backdrop-blur-sm border border-ice-200 rounded-xl shadow-lg;
+  }
+  
+  .ice-button {
+    @apply bg-gradient-to-r from-ice-500 to-ice-600 hover:from-ice-600 hover:to-ice-700 text-white font-medium rounded-lg transition-all duration-300 shadow-md hover:shadow-xl;
+  }
+  
+  .ice-input {
+    @apply border-ice-300 focus:border-ice-500 focus:ring focus:ring-ice-200 rounded-lg;
+  }
+}

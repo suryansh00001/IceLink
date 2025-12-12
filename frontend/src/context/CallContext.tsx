@@ -47,15 +47,43 @@ export const CallProvider = ({ children }: { children: React.ReactNode }) => {
     const [isVideoEnabled, setIsVideoEnabled] = useState(true);
     const [callType, setCallType] = useState<"audio" | "video">("video");
     const [callerInfo, setCallerInfo] = useState<{ userId: string; username: string } | null>(null);
+    const [callStartTime, setCallStartTime] = useState<number | null>(null);
     
     const peerConnectionRef = useRef<RTCPeerConnection | null>(null);
     const otherUserIdRef = useRef<string | null>(null);
+    const otherUserNameRef = useRef<string | null>(null);
+
+    const saveCallToHistory = (
+        userId: string, 
+        username: string, 
+        avatarUrl: string | undefined, 
+        type: "audio" | "video", 
+        direction: "incoming" | "outgoing" | "missed",
+        duration?: number
+    ) => {
+        const callRecord = {
+            id: `${Date.now()}-${Math.random().toString(36).substr(2, 9)}`,
+            userId,
+            username,
+            avatarUrl,
+            callType: type,
+            direction,
+            timestamp: Date.now(),
+            duration
+        };
+
+        const existingHistory = localStorage.getItem("callHistory");
+        const history = existingHistory ? JSON.parse(existingHistory) : [];
+        history.push(callRecord);
+        localStorage.setItem("callHistory", JSON.stringify(history));
+    };
 
     const initiateCall = async (userId: string, username: string, type: "audio" | "video") => {
         try {
             setCallType(type);
             setCallState("calling");
             otherUserIdRef.current = userId;
+            otherUserNameRef.current = username;
 
             const stream = await getMediaStream(true, type === "video");
             setLocalStream(stream);
@@ -116,6 +144,7 @@ export const CallProvider = ({ children }: { children: React.ReactNode }) => {
             });
 
             setCallState("active");
+            setCallStartTime(Date.now());
         } catch (error) {
             console.error("Error answering call:", error);
             endCall();
@@ -125,12 +154,29 @@ export const CallProvider = ({ children }: { children: React.ReactNode }) => {
     const rejectCall = () => {
         if (callerInfo && socket) {
             socket.emit("rejectCall", { to: callerInfo.userId });
+            saveCallToHistory(callerInfo.userId, callerInfo.username, undefined, callType, "missed");
         }
         setCallerInfo(null);
         setCallState("idle");
     };
 
     const endCall = () => {
+        let duration: number | undefined;
+        if (callStartTime) {
+            duration = Math.floor((Date.now() - callStartTime) / 1000);
+        }
+
+        // Save call history before cleaning up
+        if (otherUserIdRef.current && otherUserNameRef.current) {
+            if (callerInfo) {
+                // This was an incoming call that we answered
+                saveCallToHistory(callerInfo.userId, callerInfo.username, undefined, callType, "incoming", duration);
+            } else {
+                // This was an outgoing call
+                saveCallToHistory(otherUserIdRef.current, otherUserNameRef.current, undefined, callType, "outgoing", duration);
+            }
+        }
+
         if (otherUserIdRef.current && socket) {
             socket.emit("endCall", { to: otherUserIdRef.current });
         }
@@ -148,6 +194,8 @@ export const CallProvider = ({ children }: { children: React.ReactNode }) => {
         setCallState("idle");
         setCallerInfo(null);
         otherUserIdRef.current = null;
+        otherUserNameRef.current = null;
+        setCallStartTime(null);
     };
 
     const toggleAudio = () => {
@@ -202,6 +250,7 @@ export const CallProvider = ({ children }: { children: React.ReactNode }) => {
             if (peerConnectionRef.current) {
                 await peerConnectionRef.current.setRemoteDescription(new RTCSessionDescription(signal));
                 setCallState("active");
+                setCallStartTime(Date.now());
             }
         });
 

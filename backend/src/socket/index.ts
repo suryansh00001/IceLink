@@ -166,7 +166,5 @@ export const initSocket = (server: httpServer) => {
             io.to(data.to).emit("callEnded");
             console.log(`User ${socket.user?.username} ended call for user ID ${data.to}`);
         });
-
-
     });
 };

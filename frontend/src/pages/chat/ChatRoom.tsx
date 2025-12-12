@@ -180,13 +180,13 @@ export default function ChatRoom() {
     };
 
     return (
-        <div className="flex-1 flex flex-col bg-white">
+        <div className="flex-1 flex flex-col bg-gradient-to-br from-ice-50 to-white">
             {/* Header */}
-            <div className="p-4 border-b border-gray-300 bg-white shadow-sm flex justify-between items-center">
+            <div className="p-4 border-b border-ice-200 bg-gradient-to-r from-white to-ice-50/50 shadow-md flex justify-between items-center backdrop-blur-sm">
                 {selectedChat && (
                     <div className="flex items-center gap-3">
                         {selectedChat.isGroupChat ? (
-                            <div className="w-10 h-10 rounded-full bg-gradient-to-br from-green-500 to-teal-600 flex items-center justify-center text-white font-semibold text-lg">
+                            <div className="w-10 h-10 rounded-full bg-gradient-to-br from-ice-400 to-ice-600 flex items-center justify-center text-white font-semibold text-lg shadow-md">
                                 👥
                             </div>
                         ) : (
@@ -206,7 +206,7 @@ export default function ChatRoom() {
                     </div>
                 )}
                 {!selectedChat && (
-                    <h2 className="text-xl font-semibold text-gray-800">Select a chat</h2>
+                    <h2 className="text-xl font-semibold bg-gradient-to-r from-ice-700 to-ice-600 bg-clip-text text-transparent">Select a chat</h2>
                 )}
                 <div className="flex items-center gap-2">
                     {selectedChat && !selectedChat.isGroupChat && (
@@ -218,10 +218,12 @@ export default function ChatRoom() {
                                         initiateCall(otherUser._id, otherUser.username, "audio");
                                     }
                                 }}
-                                className="text-gray-600 hover:text-green-600 transition text-2xl"
+                                className="bg-ice-500 hover:bg-ice-600 text-white p-2 rounded-lg transition-all duration-300 shadow-md hover:shadow-lg hover:scale-110"
                                 title="Audio Call"
                             >
-                                📞
+                                <svg className="w-5 h-5" fill="currentColor" viewBox="0 0 24 24">
+                                    <path d="M20.01 15.38c-1.23 0-2.42-.2-3.53-.56-.35-.12-.74-.03-1.01.24l-1.57 1.97c-2.83-1.35-5.48-3.9-6.89-6.83l1.95-1.66c.27-.28.35-.67.24-1.02-.37-1.11-.56-2.3-.56-3.53 0-.54-.45-.99-.99-.99H4.19C3.65 3 3 3.24 3 3.99 3 13.28 10.73 21 20.01 21c.71 0 .99-.63.99-1.18v-3.45c0-.54-.45-.99-.99-.99z"/>
+                                </svg>
                             </button>
                             <button
                                 onClick={() => {
@@ -230,20 +232,24 @@ export default function ChatRoom() {
                                         initiateCall(otherUser._id, otherUser.username, "video");
                                     }
                                 }}
-                                className="text-gray-600 hover:text-blue-600 transition text-2xl"
+                                className="bg-ice-600 hover:bg-ice-700 text-white p-2 rounded-lg transition-all duration-300 shadow-md hover:shadow-lg hover:scale-110"
                                 title="Video Call"
                             >
-                                📹
+                                <svg className="w-5 h-5" fill="currentColor" viewBox="0 0 24 24">
+                                    <path d="M17 10.5V7c0-.55-.45-1-1-1H4c-.55 0-1 .45-1 1v10c0 .55.45 1 1 1h12c.55 0 1-.45 1-1v-3.5l4 4v-11l-4 4z"/>
+                                </svg>
                             </button>
                         </>
                     )}
                     {selectedChat?.isGroupChat && (
                         <button
                             onClick={() => setShowGroupSettings(true)}
-                            className="text-gray-600 hover:text-primary transition text-2xl"
+                            className="bg-ice-500 hover:bg-ice-600 text-white p-2 rounded-lg transition-all duration-300 shadow-md hover:shadow-lg"
                             title="Group Settings"
                         >
-                            ⚙️
+                            <svg className="w-5 h-5" fill="currentColor" viewBox="0 0 24 24">
+                                <path d="M19.14 12.94c.04-.3.06-.61.06-.94 0-.32-.02-.64-.07-.94l2.03-1.58c.18-.14.23-.41.12-.61l-1.92-3.32c-.12-.22-.37-.29-.59-.22l-2.39.96c-.5-.38-1.03-.7-1.62-.94l-.36-2.54c-.04-.24-.24-.41-.48-.41h-3.84c-.24 0-.43.17-.47.41l-.36 2.54c-.59.24-1.13.57-1.62.94l-2.39-.96c-.22-.08-.47 0-.59.22L2.74 8.87c-.12.21-.08.47.12.61l2.03 1.58c-.05.3-.09.63-.09.94s.02.64.07.94l-2.03 1.58c-.18.14-.23.41-.12.61l1.92 3.32c.12.22.37.29.59.22l2.39-.96c.5.38 1.03.7 1.62.94l.36 2.54c.05.24.24.41.48.41h3.84c.24 0 .44-.17.47-.41l.36-2.54c.59-.24 1.13-.56 1.62-.94l2.39.96c.22.08.47 0 .59-.22l1.92-3.32c.12-.22.07-.47-.12-.61l-2.01-1.58zM12 15.6c-1.98 0-3.6-1.62-3.6-3.6s1.62-3.6 3.6-3.6 3.6 1.62 3.6 3.6-1.62 3.6-3.6 3.6z"/>
+                            </svg>
                         </button>
                     )}
                 </div>
@@ -282,14 +288,16 @@ export default function ChatRoom() {
             </div>
 
             {/* Input Area */}
-            <div className="p-4 border-t border-gray-300 bg-white">
-                <form onSubmit={handleSendMessage} className="flex items-center gap-2">
+            <div className="p-4 border-t border-ice-200 bg-gradient-to-r from-white to-ice-50/30">
+                <form onSubmit={handleSendMessage} className="flex items-center gap-3">
                     <label
                         htmlFor="fileInput"
-                        className="cursor-pointer text-2xl hover:bg-gray-100 p-2 rounded-full transition duration-200"
+                        className="cursor-pointer hover:bg-ice-100 p-2 rounded-lg transition-all duration-300 text-ice-600 hover:text-ice-700"
                         title="Attach file"
                     >
-                        📎
+                        <svg className="w-6 h-6" fill="currentColor" viewBox="0 0 24 24">
+                            <path d="M16.5 6v11.5c0 2.21-1.79 4-4 4s-4-1.79-4-4V5c0-1.38 1.12-2.5 2.5-2.5s2.5 1.12 2.5 2.5v10.5c0 .55-.45 1-1 1s-1-.45-1-1V6H10v9.5c0 1.38 1.12 2.5 2.5 2.5s2.5-1.12 2.5-2.5V5c0-2.21-1.79-4-4-4S7 2.79 7 5v12.5c0 3.04 2.46 5.5 5.5 5.5s5.5-2.46 5.5-5.5V6h-1.5z"/>
+                        </svg>
                         <input
                             type="file"
                             id="fileInput"
@@ -304,12 +312,12 @@ export default function ChatRoom() {
                         onChange={(e) => { handleInputChange(e); }}
                         value={newMessage}
                         disabled={!selectedChat}
-                        className="flex-1 px-4 py-2 rounded-full border border-gray-300 focus:outline-none focus:border-primary disabled:bg-gray-100"
+                        className="flex-1 px-5 py-3 rounded-full ice-input disabled:bg-ice-50"
                     />
                     <button
                         type="submit"
                         disabled={!selectedChat || newMessage.trim() === ""}
-                        className="bg-primary text-white px-6 py-2 rounded-full hover:bg-green-600 transition duration-200 disabled:bg-gray-300 disabled:cursor-not-allowed"
+                        className="ice-button px-6 py-3 rounded-full disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:shadow-md"
                     >
                         Send
                     </button>

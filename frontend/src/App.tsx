@@ -2,6 +2,7 @@ import { Routes, Route, Navigate } from 'react-router-dom';
 import Login from './pages/auth/Login';
 import Register from './pages/auth/Register';
 import ChatPage from './pages/chat/ChatPage';
+import CallHistory from './pages/call/CallHistory';
 import ProtectedRoute from './components/common/protectedRoute';
 
 function App() {
@@ -14,6 +15,7 @@ function App() {
         <Route element={<ProtectedRoute />}>
           <Route path="/chats" element={<ChatPage />} />
           <Route path="/chats/:chatId" element={<ChatPage />} />
+          <Route path="/call-history" element={<CallHistory />} />
         </Route>
       </Routes>
     </div>
