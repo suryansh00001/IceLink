@@ -1,6 +1,7 @@
 import { Routes, Route, Navigate } from 'react-router-dom';
 import Login from './pages/auth/Login';
 import Register from './pages/auth/Register';
+import ChatPage from './pages/chat/ChatPage';
 import ProtectedRoute from './components/common/protectedRoute';
 
 function App() {
@@ -11,8 +12,8 @@ function App() {
         <Route path="/login" element={<Login />} />
         <Route path="/register" element={<Register />} />
         <Route element={<ProtectedRoute />}>
-          {/* Add your protected routes here */}
-          <Route path="/chats" element={<div>Chats Page</div>} />
+          <Route path="/chats" element={<ChatPage />} />
+          <Route path="/chats/:chatId" element={<ChatPage />} />
         </Route>
       </Routes>
     </div>
