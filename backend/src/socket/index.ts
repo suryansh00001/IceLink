@@ -64,23 +64,57 @@ export const initSocket = (server: httpServer) => {
         }
 
     });
-    io.on("connection", (socket: authSocket) => {
-        console.log("🧊 IceLink user connected:", socket.id, "User:", socket.user?.username)
-        const userId = socket.user?._id;
-        if (userId) {
-            User.findByIdAndUpdate(userId, { socketId: socket.id, isOnline: true }).exec();
-        }
-        socket.join(userId.toString());
-        socket.on("disconnect", () => {
-            console.log("❄ User disconnected:", socket.id);
-            if (userId) {
-                User.findByIdAndUpdate(userId, { socketId: null, isOnline: false }).exec();
+       
+    io.on("connection", async (socket: authSocket) => {
+            console.log("🧊 IceLink user connected:", socket.id, "User:", socket.user?.username);
+
+            const userId = socket.user?._id;
+            if (!userId) return;
+
+            // Mark user online
+            await User.findByIdAndUpdate(userId, {
+                socketId: socket.id,
+                isOnline: true
+            }).exec();
+
+            // Join personal room
+            socket.join(userId.toString());
+
+            // Notify all clients this user is now online
+            io.emit("onlineUsers", {
+                userId,
+                isOnline: true
+            });
+
+            // Handle disconnect
+            socket.on("disconnect", async () => {
+                console.log("❄ User disconnected:", socket.id);
+
+                await User.findByIdAndUpdate(userId, {
+                    socketId: null,
+                    isOnline: false
+                }).exec();
+
+                // Notify all clients this user is now offline
+                io.emit("onlineUsers", {
+                    userId,
+                    isOnline: false
+                });
+            });
+
+
+
+        socket.on("message-sent", (message: any) => {
+            if (!message.chatId) {
+                console.error("❌ Missing chatId in message:", message);
+                return;
             }
+
+            io.to(message.chatId.toString()).emit("message-received", message);
         });
 
         socket.on("joinChat", (chatId: string) => {
             socket.join(chatId);
-            console.log(`User ${socket.user?.username} joined chat ${chatId}`);
         });
 
         socket.on("typing", (chatId: string) => {

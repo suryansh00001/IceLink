@@ -1,14 +1,14 @@
-import { createContext, useContext , useState } from "react";
+import { createContext, useContext , useState, Dispatch, SetStateAction } from "react";
 import { Ichat } from "../types/chat";
 import { IMessage } from "../types/message";
 
 type chatContextType = {
     chats: Ichat[];
-    setChats: (chats: Ichat[]) => void;
+    setChats: Dispatch<SetStateAction<Ichat[]>>;
     selectedChat: Ichat | null;
     messages: IMessage[];
     selectChat: (chat: Ichat) => void;
-    setMessages: (messages: IMessage[]) => void;
+    setMessages: Dispatch<SetStateAction<IMessage[]>>;
 };
 
 const ChatContext = createContext<chatContextType>({
