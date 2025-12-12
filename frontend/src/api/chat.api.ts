@@ -18,17 +18,17 @@ export const createGroupChat = async (name: string, participantIds: string[]): P
 }
 
 export const renameGroupChat = async (chatId: string, newName: string): Promise<Ichat> => {
-    const response = await axiosInstance.put(`/chats/group/rename`, { chatId, newName });
+    const response = await axiosInstance.put(`/chats/group/${chatId}/rename`, { newName });
     return response.data.data.chat;
 }   
 
 export const addUserToGroupChat = async (chatId: string, userId: string): Promise<Ichat> => {
-    const response = await axiosInstance.put(`/chats/group/add`, { chatId, userId });
+    const response = await axiosInstance.put(`/chats/group/${chatId}/adduser`, { userId });
     return response.data.data.chat;
 }
 
 export const removeUserFromGroupChat = async (chatId: string, userId: string): Promise<Ichat> => {
-    const response = await axiosInstance.put(`/chats/group/remove`, { chatId, userId });
+    const response = await axiosInstance.put(`/chats/group/${chatId}/removeuser`, { userId });
     return response.data.data.chat;
 }
 

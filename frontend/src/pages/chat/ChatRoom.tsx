@@ -5,6 +5,7 @@ import { IMessage } from "../../types/message";
 import { getMessagesByChatId, sendMessage, uploadMedia } from "../../api/message.api";
 import MessageBubble from "../../components/chat/MessageBubble";
 import { useSocket } from "../../context/SocketContext";
+import GroupSettingsModal from "../../components/chat/GroupSettingsModal";
 
 
 
@@ -17,6 +18,7 @@ export default function ChatRoom() {
     const [isOtherTyping, setIsOtherTyping] = useState(false);
     const bottomRef = useRef<HTMLDivElement>(null);
     const messagesContainerRef = useRef<HTMLDivElement>(null);
+    const [showGroupSettings, setShowGroupSettings] = useState(false);
 
 
     const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -176,7 +178,7 @@ export default function ChatRoom() {
     return (
         <div className="flex-1 flex flex-col bg-white">
             {/* Header */}
-            <div className="p-4 border-b border-gray-300 bg-white shadow-sm">
+            <div className="p-4 border-b border-gray-300 bg-white shadow-sm flex justify-between items-center">
                 <h2 className="text-xl font-semibold text-gray-800">
                     {selectedChat
                         ? selectedChat.isGroupChat
@@ -184,6 +186,15 @@ export default function ChatRoom() {
                             : selectedChat.participants[0]?.username
                         : "Select a chat"}
                 </h2>
+                {selectedChat?.isGroupChat && (
+                    <button
+                        onClick={() => setShowGroupSettings(true)}
+                        className="text-gray-600 hover:text-primary transition text-2xl"
+                        title="Group Settings"
+                    >
+                        ⚙️
+                    </button>
+                )}
             </div>
 
             {/* Messages Area */}
@@ -252,6 +263,13 @@ export default function ChatRoom() {
                     </button>
                 </form>
             </div>
+
+            {/* Group Settings Modal */}
+            <GroupSettingsModal
+                isOpen={showGroupSettings}
+                onClose={() => setShowGroupSettings(false)}
+                chat={selectedChat}
+            />
         </div>
     );
 }

@@ -20,7 +20,7 @@ const NewGroupModal: React.FC<NewGroupModalProps> = ({ isOpen, onClose }) => {
         
         try {
             setIsCreating(true);
-            // Split participant IDs by comma or space
+       
             const participantArray = participantIds
                 .split(/[,\s]+/)
                 .map(id => id.trim())
@@ -37,7 +37,7 @@ const NewGroupModal: React.FC<NewGroupModalProps> = ({ isOpen, onClose }) => {
             setGroupName('');
             setParticipantIds('');
             onClose();
-            // Navigate to chats page if not already there
+      
             if (!window.location.pathname.includes('/chats')) {
                 navigate('/chats');
             }
