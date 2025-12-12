@@ -23,11 +23,10 @@ const ChatItem = ({ chat }: { chat: Ichat }) => {
   const getLastMessagePreview = () => {
     if (!chat.lastMessage) return "No messages yet";
 
-    const { messageType, content, mediaUrl, sender } = chat.lastMessage;
-    const senderName = chat.isGroupChat && sender 
-      ? `${sender.username}: ` 
+    const { messageType, content, mediaUrl, senderId } = chat.lastMessage;
+    const senderName = chat.isGroupChat && senderId
+      ? `${senderId.username}: `
       : "";
-
     switch (messageType) {
       case "text":
         return `${senderName}${content}`;

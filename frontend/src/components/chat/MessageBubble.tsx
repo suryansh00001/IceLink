@@ -8,28 +8,29 @@ interface MessageBubbleProps {
 
 const MessageBubble: React.FC<MessageBubbleProps> = ({ message }) => {
     const { user } = useAuth();
-    const isOwnMessage = message.sender?._id === user?._id;
+    const isOwnMessage = message.senderId?._id === user?._id;
+    
     return (
-        <div className={`flex gap-2 ${isOwnMessage ? 'justify-end' : 'justify-start'}`}>
-            {!isOwnMessage && message.sender && (
+        <div className={`flex gap-3 mb-4 items-end ${isOwnMessage ? 'justify-end' : 'justify-start'}`}>
+            {!isOwnMessage && message.senderId && (
                 <Avatar
-                    src={message.sender.avatarUrl}
-                    name={message.sender.username}
+                    src={message.senderId.avatarUrl}
+                    name={message.senderId.username}
                     size="sm"
                     showOnline={true}
-                    userId={message.sender._id}
+                    userId={message.senderId._id}
                 />
             )}
             <div
-                className={`p-3 rounded-md max-w-xs ${
+                className={`px-4 py-3 rounded-2xl max-w-xs shadow-md ${
                     isOwnMessage
-                        ? "bg-blue-600 text-white"
-                        : "bg-gray-700 text-gray-100"
+                        ? "bg-blue-600 text-white rounded-br-sm"
+                        : "bg-gray-700 text-gray-100 rounded-bl-sm"
                 }`}
             >
-                {!isOwnMessage && message.sender && (
+                {!isOwnMessage && message.senderId && (
                     <div className="text-xs font-semibold mb-1 opacity-80">
-                        {message.sender.username}
+                        {message.senderId.username}
                     </div>
                 )}
                 {message.messageType === "text" && (
@@ -68,13 +69,13 @@ const MessageBubble: React.FC<MessageBubbleProps> = ({ message }) => {
             </div>
         )}
             </div>
-            {isOwnMessage && message.sender && (
+            {isOwnMessage && message.senderId && (
                 <Avatar
-                    src={message.sender.avatarUrl}
-                    name={message.sender.username}
+                    src={message.senderId.avatarUrl}
+                    name={message.senderId.username}
                     size="sm"
                     showOnline={true}
-                    userId={message.sender._id}
+                    userId={message.senderId._id}
                 />
             )}
         </div>

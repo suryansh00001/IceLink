@@ -44,8 +44,8 @@ export const ChatProvider = ({ children }: { children: React.ReactNode }) => {
             })));
 
             setMessages(prev => prev.map(msg => 
-                msg.sender?._id === userId 
-                    ? { ...msg, sender: { ...msg.sender, avatarUrl } }
+                msg.senderId?._id === userId
+                    ? { ...msg, senderId: { ...msg.senderId, avatarUrl } }
                     : msg
             ));
 

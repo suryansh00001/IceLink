@@ -3,7 +3,7 @@ import { IUser } from "./user";
 export interface IMessage {
   _id: string;                         
   chatId: string;            
-  sender: IUser;          
+  senderId: IUser;          
   content?: string;
   mediaUrl?: string | null;
   messageType: "text" | "image" | "video" | "file";
