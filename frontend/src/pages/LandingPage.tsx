@@ -18,11 +18,8 @@ const LandingPage = () => {
                     <div className="flex justify-between items-center h-20">
                         <div className="flex items-center gap-3">
                             <div className="relative">
-                                <svg className="w-12 h-12 text-ice-400" fill="currentColor" viewBox="0 0 24 24">
-                                    <path d="M12 2L2 7v10c0 5.55 3.84 10.74 9 12 5.16-1.26 9-6.45 9-12V7l-10-5zm0 2.18l8 3.6v8.72c0 4.35-2.98 8.41-7 9.62V3.78l-1 .4z"/>
-                                    <circle cx="12" cy="12" r="4" className="animate-ping opacity-20"/>
-                                </svg>
-                                <div className="absolute inset-0 bg-ice-400/20 rounded-full blur-xl"></div>
+                                <div className="absolute inset-0 bg-gradient-to-r from-ice-400 via-ice-500 to-ice-600 blur-2xl opacity-60 animate-pulse"></div>
+                                <img src="/assets/logo.png" alt="IceLink Logo" className="relative w-[84px] h-[84px] object-contain" />
                             </div>
                             <span className="text-3xl font-bold bg-gradient-to-r from-ice-200 via-white to-ice-300 bg-clip-text text-transparent">
                                 IceLink
