@@ -15,8 +15,16 @@ const Register: React.FC = () => {
             await register(username, email, password);
             await login(email, password);
             navigate("/chats");
-        } catch (error) {
-            alert("Registration failed: " + (error as Error).message);
+        } catch (error: any) {
+            // Extract validation errors from the response
+            if (error.response?.data?.errors && Array.isArray(error.response.data.errors)) {
+                const errorMessages = error.response.data.errors.map((err: any) => err.msg).join('\n');
+                alert(errorMessages);
+            } else if (error.response?.data?.message) {
+                alert(error.response.data.message);
+            } else {
+                alert("Registration failed: " + error.message);
+            }
         }
     };
     return (

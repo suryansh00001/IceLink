@@ -7,24 +7,27 @@ import { AuthProvider } from "./context/AuthContext";
 import { ChatProvider } from "./context/ChatContext";
 import { SocketProvider } from "./context/SocketContext";
 import { CallProvider } from "./context/CallContext";
+import ErrorBoundary from './components/common/ErrorBoundary';
 
 const root = ReactDOM.createRoot(
   document.getElementById('root') as HTMLElement
 );
 root.render(
-  <React.StrictMode>
-    <AuthProvider>
-      <SocketProvider>
-        <CallProvider>
-          <ChatProvider>
-            <BrowserRouter>
-              <App />
-            </BrowserRouter>
-          </ChatProvider>
-        </CallProvider>
-      </SocketProvider>
-    </AuthProvider>
-  </React.StrictMode>
+    <React.StrictMode>
+      <ErrorBoundary>
+        <AuthProvider>
+          <SocketProvider>
+            <CallProvider>
+              <ChatProvider>
+                  <BrowserRouter>
+                    <App />
+                  </BrowserRouter>
+              </ChatProvider>
+            </CallProvider>
+          </SocketProvider>
+        </AuthProvider>
+      </ErrorBoundary>
+    </React.StrictMode>
 );
 
 

@@ -15,16 +15,22 @@ const Login: React.FC = () => {
             await login(email, password);
             navigate("/chats");
         } catch (error: any) {
-            const errorMessage = error?.response?.data?.message || error.message;
-
-            if (errorMessage.toLowerCase().includes("user not found") || 
-                errorMessage.toLowerCase().includes("invalid credentials") ||
-                error?.response?.status === 404) {
-                if (window.confirm("User not found. Would you like to register?")) {
-                    navigate("/register");
-                }
+            // Extract validation errors from the response
+            if (error.response?.data?.errors && Array.isArray(error.response.data.errors)) {
+                const errorMessages = error.response.data.errors.map((err: any) => err.msg).join('\n');
+                alert(errorMessages);
             } else {
-                alert("Login failed: " + errorMessage);
+                const errorMessage = error?.response?.data?.message || error.message;
+
+                if (errorMessage.toLowerCase().includes("user not found") || 
+                    errorMessage.toLowerCase().includes("invalid credentials") ||
+                    error?.response?.status === 404) {
+                    if (window.confirm("User not found. Would you like to register?")) {
+                        navigate("/register");
+                    }
+                } else {
+                    alert("Login failed: " + errorMessage);
+                }
             }
         }
     };

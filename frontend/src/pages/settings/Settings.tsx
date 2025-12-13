@@ -34,7 +34,13 @@ export default function Settings() {
             setIsEditing(false);
             toast.success("Profile updated successfully!");
         } catch (error: any) {
-            toast.error(error.response?.data?.message || "Failed to update profile");
+            // Extract validation errors from the response
+            if (error.response?.data?.errors && Array.isArray(error.response.data.errors)) {
+                const errorMessages = error.response.data.errors.map((err: any) => err.msg).join('\n');
+                toast.error(errorMessages);
+            } else {
+                toast.error(error.response?.data?.message || "Failed to update profile");
+            }
         } finally {
             setIsLoading(false);
         }
@@ -74,7 +80,13 @@ export default function Settings() {
                 navigate('/login');
             }, 2000);
         } catch (error: any) {
-            toast.error(error.response?.data?.message || "Failed to change password");
+            // Extract validation errors from the response
+            if (error.response?.data?.errors && Array.isArray(error.response.data.errors)) {
+                const errorMessages = error.response.data.errors.map((err: any) => err.msg).join('\n');
+                toast.error(errorMessages);
+            } else {
+                toast.error(error.response?.data?.message || "Failed to change password");
+            }
         } finally {
             setIsChangingPassword(false);
         }

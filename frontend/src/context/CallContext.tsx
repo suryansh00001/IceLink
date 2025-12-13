@@ -118,9 +118,20 @@ export const CallProvider = ({ children }: { children: React.ReactNode }) => {
                 name: user?.username,
                 callType: type
             });
-        } catch (error) {
+        } catch (error: any) {
             console.error("Error initiating call:", error);
             setCallState("idle");
+            
+            // Show user-friendly error messages
+            if (error.name === 'NotAllowedError') {
+                alert('Camera/microphone access denied. Please allow permissions to make calls.');
+            } else if (error.name === 'NotFoundError') {
+                alert('No camera or microphone found. Please connect a device to make calls.');
+            } else if (error.name === 'NotReadableError') {
+                alert('Camera/microphone is already in use by another application.');
+            } else {
+                alert('Failed to start call. Please check your camera and microphone.');
+            }
         }
     };
 
@@ -145,8 +156,20 @@ export const CallProvider = ({ children }: { children: React.ReactNode }) => {
 
             setCallState("active");
             setCallStartTime(Date.now());
-        } catch (error) {
+        } catch (error: any) {
             console.error("Error answering call:", error);
+            
+            // Show user-friendly error messages
+            if (error.name === 'NotAllowedError') {
+                alert('Camera/microphone access denied. Please allow permissions to answer calls.');
+            } else if (error.name === 'NotFoundError') {
+                alert('No camera or microphone found. Please connect a device to answer calls.');
+            } else if (error.name === 'NotReadableError') {
+                alert('Camera/microphone is already in use by another application.');
+            } else {
+                alert('Failed to answer call. Please check your camera and microphone.');
+            }
+            
             endCall();
         }
     };
