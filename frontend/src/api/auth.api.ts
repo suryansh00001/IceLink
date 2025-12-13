@@ -16,3 +16,13 @@ export const getCurrentUser = async () => {
     const response = await axiosInstance.get("/users/me");
     return response.data;
 };
+
+export const updateDetails = async (username?: string, email?: string) => {
+    const response = await axiosInstance.put("/users/update-details", { username, email });
+    return response.data;
+};
+
+export const changePassword = async (currentPassword: string, newPassword: string) => {
+    const response = await axiosInstance.put("/users/change-password", { currentPassword, newPassword });
+    return response.data;
+};

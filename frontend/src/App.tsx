@@ -4,11 +4,14 @@ import Login from './pages/auth/Login';
 import Register from './pages/auth/Register';
 import ChatPage from './pages/chat/ChatPage';
 import CallHistory from './pages/call/CallHistory';
+import Settings from './pages/settings/Settings';
 import ProtectedRoute from './components/common/protectedRoute';
+import { Toaster } from 'react-hot-toast';
 
 function App() {
   return (
     <div className="min-h-screen bg-gray-50">
+      <Toaster position="top-right" />
       <Routes>
         <Route path="/" element={<LandingPage />} />
         <Route path="/login" element={<Login />} />
@@ -17,6 +20,7 @@ function App() {
           <Route path="/chats" element={<ChatPage />} />
           <Route path="/chats/:chatId" element={<ChatPage />} />
           <Route path="/call-history" element={<CallHistory />} />
+          <Route path="/settings" element={<Settings />} />
         </Route>
       </Routes>
     </div>
