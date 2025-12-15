@@ -48,3 +48,9 @@ docker-compose.override.yml
 *.pem
 *.key
 .env.backup
+
+# Large files
+*.mp4
+*.mov
+*.avi
+demo.*
