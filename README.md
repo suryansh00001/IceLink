@@ -424,9 +424,115 @@ This entire project was built from ground up in just **8-9 days** as an intensiv
 
 ---
 
-##  Deployment
+## 🚀 Deployment
 
-> **Note**: This section will be updated after deployment with live URLs.
+### Current Setup
+
+**Backend** ✅ Deployed
+- **Platform**: AWS EC2 (Ubuntu 24.04)
+- **URL**: `http://YOUR_EC2_IP:5000`
+- **Container**: Docker (node:18-alpine)
+- **Status**: Production Ready
+
+**Frontend** 🏠 Local Development
+- **Platform**: Local (development mode)
+- **URL**: `http://localhost:3000`
+- **Status**: Ready for production deployment
+
+**Database & Storage**
+- **MongoDB**: Atlas Cloud (Serverless)
+- **File Storage**: Cloudinary
+
+---
+
+### 🔧 Setup Instructions
+
+#### Backend (AWS EC2)
+
+1. **Prerequisites**
+```bash
+# SSH into EC2
+ssh -i your-key.pem ubuntu@YOUR_EC2_IP
+
+# Install Docker
+sudo apt update && sudo apt install -y docker.io
+sudo systemctl start docker
+sudo usermod -aG docker ubuntu
+```
+
+2. **Deploy Backend**
+```bash
+# Upload backend code
+scp -i your-key.pem backend.tar.gz ubuntu@YOUR_EC2_IP:~
+
+# On EC2: Extract and setup
+tar -xzf backend.tar.gz
+cd backend
+
+# Create .env file
+nano .env
+# Add environment variables (see below)
+
+# Build and run Docker container
+docker build -t icelink-backend .
+docker run -d -p 5000:5000 --env-file .env --restart unless-stopped --name icelink-backend icelink-backend
+```
+
+3. **Environment Variables (Backend .env)**
+```env
+PORT=5000
+NODE_ENV=development
+MONGODB_URI=your_mongodb_atlas_uri
+JWT_SECRET=your_secret_key
+JWT_REFRESH_SECRET=your_refresh_secret
+ACCESS_TOKEN_EXPIRY=15m
+REFRESH_TOKEN_EXPIRY=7d
+CLOUDINARY_CLOUD_NAME=your_cloudinary_name
+CLOUDINARY_API_KEY=your_cloudinary_key
+CLOUDINARY_API_SECRET=your_cloudinary_secret
+GOOGLE_CLIENT_ID=your_google_client_id
+ALLOWED_ORIGINS=http://localhost:3000
+FRONTEND_URL=http://localhost:3000
+```
+
+#### Frontend (Local)
+
+1. **Install Dependencies**
+```bash
+cd frontend
+npm install
+```
+
+2. **Configure Environment**
+Create `frontend/.env`:
+```env
+REACT_APP_API_URL=http://YOUR_EC2_IP:5000/api
+REACT_APP_SOCKET_URL=http://YOUR_EC2_IP:5000
+REACT_APP_GOOGLE_CLIENT_ID=your_google_client_id
+```
+
+3. **Run Development Server**
+```bash
+npm start
+# Opens at http://localhost:3000
+```
+
+---
+
+### 📋 Environment Setup Checklist
+
+- [ ] MongoDB Atlas cluster created
+- [ ] Cloudinary account configured
+- [ ] Google OAuth credentials obtained
+- [ ] AWS EC2 instance launched (Ubuntu 24.04)
+- [ ] Security group rules configured (ports 22, 80, 5000)
+- [ ] Docker installed on EC2
+- [ ] Backend .env file created with all credentials
+- [ ] Frontend .env file created with backend URL
+- [ ] Backend deployed and running
+- [ ] Frontend tested locally
+
+---
 
 ### Planned Deployment Stack
 

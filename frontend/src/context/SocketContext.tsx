@@ -27,7 +27,7 @@ export const SocketProvider = ({ children }: { children: React.ReactNode }) => {
 
         const token = localStorage.getItem("token");
 
-        const newSocket = io("http://localhost:5000", {
+        const newSocket = io(process.env.REACT_APP_SOCKET_URL || "http://localhost:5000", {
             auth: { token },
             reconnection: true,
             reconnectionDelay: 1000,
